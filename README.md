@@ -42,31 +42,31 @@ This process will generate a file tree that you can use here. Do not use this pr
 ReleaseNotes.xml syntax
 --------
 
-`<ReleaseNotes>
-	<Version>MajorRelease42</Version>
-	<Date>DDMMYY</Date>
-	<Notes>*Title*
-
-	Text, text, text.</Notes>
-	<NotUpdatedFile>UDKGame/Config/i-will-not-be-erased.ini</NotUpdatedFile>
-</ReleaseNotes>`
+	`<ReleaseNotes>
+		<Version>MajorRelease42</Version>
+		<Date>DDMMYY</Date>
+		<Notes>*Title*
+	
+		Text, text, text.</Notes>
+		<NotUpdatedFile>UDKGame/Config/i-will-not-be-erased.ini</NotUpdatedFile>
+	</ReleaseNotes>`
 
 
 GameManifest.xml syntax
 --------
 
-`<FolderProperties FolderName=".">
-	<Folders>
-		<FolderProperties FolderName="FolderA">
-			<Folders/>
-			<Files>
-				<FileProperties FileName="FileA" Size="889416" md5="53406e9988306cbd4537677c5336aba4"/>
-				<FileProperties FileName="FileB" Size="45014" md5="54498899854584bd4534584bd336a544"/>
-			</Files>
-		</FolderProperties>
-	</Folders>
-	<Files/>
-</FolderProperties>`
+	`<FolderProperties FolderName=".">
+		<Folders>
+			<FolderProperties FolderName="FolderA">
+				<Folders/>
+				<Files>
+					<FileProperties FileName="FileA" Size="889416" md5="53406e9988306cbd4537677c5336aba4"/>
+					<FileProperties FileName="FileB" Size="45014" md5="54498899854584bd4534584bd336a544"/>
+				</Files>
+			</FolderProperties>
+		</Folders>
+		<Files/>
+	</FolderProperties>`
 
 
 --------
