@@ -42,20 +42,20 @@ This process will generate a file tree that you can use here. Do not use this pr
 ReleaseNotes.xml syntax
 --------
 
-	`<ReleaseNotes>
+	<ReleaseNotes>
 		<Version>MajorRelease42</Version>
 		<Date>DDMMYY</Date>
 		<Notes>*Title*
 	
 		Text, text, text.</Notes>
 		<NotUpdatedFile>UDKGame/Config/i-will-not-be-erased.ini</NotUpdatedFile>
-	</ReleaseNotes>`
+	</ReleaseNotes>
 
 
 GameManifest.xml syntax
 --------
 
-	`<FolderProperties FolderName=".">
+	<FolderProperties FolderName=".">
 		<Folders>
 			<FolderProperties FolderName="FolderA">
 				<Folders/>
@@ -66,7 +66,7 @@ GameManifest.xml syntax
 			</FolderProperties>
 		</Folders>
 		<Files/>
-	</FolderProperties>`
+	</FolderProperties>
 
 
 --------
