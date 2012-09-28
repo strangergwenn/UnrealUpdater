@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/data">
+        <file>Res/AboutBackground.png</file>
+        <file>Res/Icon.png</file>
+        <file>Res/Launch.png</file>
+        <file>Res/MainBackground.png</file>
+    </qresource>
+</RCC>
