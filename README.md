@@ -16,6 +16,7 @@ User-side configuration files
 --------
 
 There are currently a few configuration files in the *Config/* folder, created on startup.
+
 1.  *UU_Lock.setting* is generated, do not use.
 2.  *UU_AutoLaunch.setting*, if existing, will trigger auto-launch of the game after updating. Delete it to abort this.
 3.  *UU_Dedicated.setting*, if existing, will make the game launch on server mode using the configured map.
