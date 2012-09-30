@@ -15,14 +15,16 @@ TEMPLATE = app
 SOURCES += main.cpp\
     about.cpp \
     downloader.cpp \
-    updater.cpp
+    updater.cpp \
+    windows-specific.cpp
 
 HEADERS  += \
     about.h \
     common.h \
     downloader.h \
     updater.h \
-    Res/project.h
+    Res/project.h \
+    windows-specific.h
 
 FORMS    += \
     about.ui \

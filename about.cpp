@@ -10,20 +10,24 @@
 
 
 /*----------------------------------------------
-         Constructor & destructor
+	 Constructor & destructor
 ----------------------------------------------*/
 
 About::About(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::About)
+	QDialog(parent),
+	ui(new Ui::About)
 {
-    ui->setupUi(this);
-    ui->aboutText->setHtml(TextToHtml(ABOUT_CONTENT));
-    setWindowTitle(ABOUT_TITLE);
-    connect(ui->exitButton, SIGNAL(clicked()), this, SLOT(close()));
+	ui->setupUi(this);
+	ui->aboutText->setHtml(TextToHtml(ABOUT_CONTENT));
+	setWindowTitle(ABOUT_TITLE);
+	connect(ui->exitButton, SIGNAL(clicked()), this, SLOT(close()));
+
+	#ifdef USE_AERO_EFFECTS
+		SetupAeroEffects(this);
+	#endif
 }
 
 About::~About()
 {
-    delete ui;
+	delete ui;
 }

@@ -45,27 +45,11 @@
      <verstretch>0</verstretch>
     </sizepolicy>
    </property>
-   <widget class="QLabel" name="image">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>0</y>
-      <width>831</width>
-      <height>571</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-    <property name="pixmap">
-     <pixmap resource="UnrealUpdater.qrc">:/data/Res/MainBackground.png</pixmap>
-    </property>
-   </widget>
    <widget class="QProgressBar" name="downloadProgress">
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>454</y>
+      <y>457</y>
       <width>655</width>
       <height>50</height>
      </rect>
@@ -195,9 +179,9 @@
     <property name="geometry">
      <rect>
       <x>70</x>
-      <y>20</y>
-      <width>711</width>
-      <height>211</height>
+      <y>10</y>
+      <width>681</width>
+      <height>221</height>
      </rect>
     </property>
     <property name="sizePolicy">
@@ -610,7 +594,7 @@
     <property name="geometry">
      <rect>
       <x>670</x>
-      <y>454</y>
+      <y>457</y>
       <width>121</width>
       <height>50</height>
      </rect>
@@ -844,6 +828,32 @@
      <bool>false</bool>
     </property>
    </widget>
+   <widget class="QLabel" name="image">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>800</width>
+      <height>570</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap resource="UnrealUpdater.qrc">:/data/Res/MainBackground.png</pixmap>
+    </property>
+   </widget>
+   <zorder>image</zorder>
+   <zorder>downloadProgress</zorder>
+   <zorder>userInformation</zorder>
+   <zorder>releaseNotes</zorder>
+   <zorder>currentFile</zorder>
+   <zorder>streamedMessages</zorder>
+   <zorder>launchGame</zorder>
+   <zorder>about</zorder>
+   <zorder>isServer</zorder>
+   <zorder>isAutoLaunch</zorder>
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
