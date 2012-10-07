@@ -19,6 +19,7 @@ Updater::Updater(QWidget *parent) :
 {
 	// Configuration
 	SetLock(true);
+	bAbortUpdate = false;
 	bDownloadPart = false;
 	bServerMode = GetSettingState(S_SERVER_FILE);
 	bAutoLaunch = GetSettingState(S_AUTOLAUNCH_FILE);
@@ -106,29 +107,37 @@ void Updater::DownloadTreeFromManifest(QString fileName)
 		dom->setContent(file);
 		file->close();
 	}
+
+	// Just what are we downloading ? Signal user
 	filesToDownload.clear();
 	GetFilesToDownload(*dom, "");
 	ui->downloadProgress->setRange(0, downloadSize);
 	PrintUserMessage("downloading " + nextVersion + " (" + QString::number(downloadSize / (1024*1024)) + " MB)");
 	PrintStreamedIfNotNull("files need downloading", filesToDownload);
 
-	// Update loop
-	foreach (fd, filesToDownload)
+	// Update is possible
+	if (!bAbortUpdate)
 	{
-		QEventLoop loop;
-		loop.connect(dlThread, SIGNAL(FileDownloaded()), &loop, SLOT(quit()));
-		emit DownloadFile(fd.dir, fd.file);
-		loop.exec();
-		PrintStreamedMessage(fd.dir + fd.file);
-	}
+		// Update loop
+		foreach (fd, filesToDownload)
+		{
+			QEventLoop loop;
+			loop.connect(dlThread, SIGNAL(FileDownloaded()), &loop, SLOT(quit()));
+			emit DownloadFile(fd.dir, fd.file);
+			loop.exec();
+			PrintStreamedMessage(fd.dir + fd.file);
+		}
+		PrintStreamedIfNotNull("files downloaded", filesToDownload);
 
-	// Update complete
-	PrintStreamedIfNotNull("files downloaded", filesToDownload);
-	filesToDownload.clear();
-	GetFilesToDownload(*dom, "");
-	PrintStreamedIfNotNull("files are corrupted", filesToDownload);
-	InstallNetFramework();
-	UpdateEnded();
+		// Update complete : check for corruptions
+		filesToDownload.clear();
+		GetFilesToDownload(*dom, "");
+		PrintStreamedIfNotNull("files not downloaded", filesToDownload);
+
+		// Run
+		InstallNetFramework();
+		UpdateEnded();
+	}
 	delete dom;
 	delete file;
 }
@@ -241,9 +250,22 @@ void Updater::FormatReleaseNotes(QDomNode node, bool bIsCurrent)
 			if (n.nodeName() == "Version")
 			{
 				if (bIsCurrent)
-				currentVersion = tmp;
+					currentVersion = tmp;
 				else
-				nextVersion = tmp;
+					nextVersion = tmp;
+			}
+
+			// Update in progress on server : abort !
+			if (n.nodeName() == "UpdateInProgress" && !bIsCurrent)
+			{
+				if (tmp == "1")
+				{
+					PrintStreamedMessage(
+						QString(HTML_HEAVY_S) +
+						"New release on server, please try again later" +
+						QString(HTML_HEAVY_E));
+					bAbortUpdate = true;
+				}
 			}
 
 			// Date
@@ -251,9 +273,9 @@ void Updater::FormatReleaseNotes(QDomNode node, bool bIsCurrent)
 			{
 				tmpDate = QDate::fromString(tmp, "ddMMyy");
 				if (bIsCurrent)
-				currentDate = tmpDate;
+					currentDate = tmpDate;
 				else
-				nextDate = tmpDate;
+					nextDate = tmpDate;
 			}
 
 			// Ignore list

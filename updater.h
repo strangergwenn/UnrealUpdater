@@ -76,6 +76,7 @@ class Updater : public QMainWindow
 		bool GetSettingState(QString settingName);
 		void InstallNetFramework(void);
 
+		bool		bAbortUpdate;
 		bool            bDownloadPart;
 		bool            bServerMode;
 		bool            bAutoLaunch;
