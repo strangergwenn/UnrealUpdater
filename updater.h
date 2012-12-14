@@ -50,7 +50,8 @@ class Updater : public QMainWindow
 	public slots:
 		void ShowReleaseNotes(void);
 		void DownloadTreeFromManifest(QString fileName);
-		void BytesDownloaded(int number);
+        void BytesDownloaded(int number);
+        void AskForPassword();
 
 		void PrintStreamedMessage(QString message);
 		void PrintStreamedIfNotNull(QString message, QList<File_t> list);

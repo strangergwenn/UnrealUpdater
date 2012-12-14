@@ -6,6 +6,7 @@
  **/
 
 #include "updater.h"
+#include "password.h"
 #include "ui_updater.h"
 
 
@@ -36,7 +37,7 @@ Updater::Updater(QWidget *parent) :
 	// Downloader startup
 	downloadSize = 0;
 	downloadedBytes = 0;
-	dlThread = new Downloader();
+    dlThread = new Downloader();
 	dlThread->start();
 	PrintUserMessage("downloading release notes");
 
@@ -49,8 +50,9 @@ Updater::Updater(QWidget *parent) :
 	// Thread communications
 	connect(dlThread, SIGNAL(DownloadTreeFromManifest(QString)), this, SLOT(DownloadTreeFromManifest(QString)));
 	connect(dlThread, SIGNAL(PrintCurrentFile(QString)), this, SLOT(PrintCurrentFile(QString)));
-	connect(dlThread, SIGNAL(BytesDownloaded(int)), this, SLOT(BytesDownloaded(int)));
-	connect(dlThread, SIGNAL(ShowReleaseNotes(void)), this, SLOT(ShowReleaseNotes(void)));
+    connect(dlThread, SIGNAL(BytesDownloaded(int)), this, SLOT(BytesDownloaded(int)));
+    connect(dlThread, SIGNAL(ShowReleaseNotes(void)), this, SLOT(ShowReleaseNotes(void)));
+    connect(dlThread, SIGNAL(AskForPassword(void)), this, SLOT(AskForPassword(void)));
 	connect(dlThread, SIGNAL(PrintStreamedMessage(QString)), this, SLOT(PrintStreamedMessage(QString)));
 	connect(this, SIGNAL(DownloadFile(QString, QString)), dlThread, SLOT(DownloadFile(QString, QString)));
 }
@@ -226,6 +228,21 @@ void Updater::AboutMe(void)
 {
 	About* aboutDialog = new About(this);
 	aboutDialog->show();
+}
+
+
+/*--- Relaunch the connecting process with a password prompt ---*/
+void Updater::AskForPassword()
+{
+    emit PrintStreamedMessage(QString(HTML_HEAVY_S) + "Update is protected" + QString(HTML_HEAVY_E));
+
+    Password* pwdDialog = new Password(this);
+    connect(
+        pwdDialog,
+        SIGNAL(PasswordEntered(QString)),
+        dlThread,
+        SLOT(ReLogin(QString)));
+    pwdDialog->exec();
 }
 
 

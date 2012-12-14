@@ -16,7 +16,8 @@ SOURCES += main.cpp\
     about.cpp \
     downloader.cpp \
     updater.cpp \
-    windows-specific.cpp
+    windows-specific.cpp \
+    password.cpp
 
 HEADERS  += \
     about.h \
@@ -24,7 +25,8 @@ HEADERS  += \
     downloader.h \
     updater.h \
     Res/project.h \
-    windows-specific.h
+    windows-specific.h \
+    password.h
 
 FORMS    += \
     about.ui \

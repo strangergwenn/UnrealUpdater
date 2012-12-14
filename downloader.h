@@ -19,29 +19,32 @@ class Downloader : public QThread
 	Q_OBJECT
 
 	public:
-		Downloader();
+        Downloader();
 		~Downloader();
 
 	public slots:
 		void StatusUpdate(int status);
 		void DownloadFile(QString dir, QString file);
 		void FilePart(void);
-		void FileFinished(int id, bool error);
+        void FileFinished(int id, bool error);
+        void ReLogin(QString pwd);
 
 	signals:
 		void FileDownloaded(void);
 		void BytesDownloaded(int);
 		void ShowReleaseNotes(void);
+        void AskForPassword(void);
 		void PrintStreamedMessage(QString message);
 		void PrintCurrentFile(QString fileName);
 		void DownloadTreeFromManifest(QString fileName);
 
-	private:
+    private:
 		void run();
 
+        bool    bLoggingIn;
 		int     downloadedSize;
-		int     get;
-		QFtp*   ftp;
+        int     get;
+        QFtp*   ftp;
 		QFile*  currentFile;
 		QString currentFtpDir;
 		QString currentFtpFile;

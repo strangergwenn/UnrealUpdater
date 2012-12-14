@@ -31,11 +31,11 @@ Downloader::~Downloader()
 void Downloader::StatusUpdate(int status)
 {
 	switch(status)
-	{
-		case QFtp::LoggedIn:
-		    DownloadFile("", FTP_RELEASE_NOTES_FILE);
-		    break;
-
+    {
+        case QFtp::LoggedIn:
+            bLoggingIn = false;
+            DownloadFile("", FTP_RELEASE_NOTES_FILE);
+            break;
 		default: break;
 	}
 }
@@ -80,9 +80,16 @@ void Downloader::FileFinished(int id, bool error)
 {
 	if (error)
 	{
-		emit PrintStreamedMessage("Error downloading " + currentFtpFile);
+        if (currentFtpFile != "")
+        {
+            emit PrintStreamedMessage("Error downloading " + currentFtpFile);
+        }
 		emit BytesDownloaded(-downloadedSize);
 		emit FileDownloaded();
+        if (bLoggingIn)
+        {
+            emit AskForPassword();
+        }
 	}
 	else if (get == id && currentFtpFile != "")
 	{
@@ -108,6 +115,12 @@ void Downloader::FileFinished(int id, bool error)
 	}
 }
 
+/*--- Use password to login ---*/
+void Downloader::ReLogin(QString pwd)
+{
+    ftp->login(FTP_USER, pwd);
+}
+
 
 /*----------------------------------------------
 	       Private methods
@@ -123,15 +136,16 @@ void Downloader::run()
 	QFile::remove(FTP_MANIFEST_FILE);
 
 	// FTP setup
-	get = -1;
-	currentFtpFile = "";
-	ftp = new QFtp(this);
+    get = -1;
+    bLoggingIn = true;
+    ftp = new QFtp(this);
+    currentFtpFile = "";
 	connect(ftp, SIGNAL(readyRead(void)), this, SLOT(FilePart(void)));
 	connect(ftp, SIGNAL(stateChanged(int)), this, SLOT(StatusUpdate(int)));
 	connect(ftp, SIGNAL(commandFinished(int, bool)), this, SLOT(FileFinished(int, bool)));
 
 	// Launch
-	ftp->connectToHost(FTP_SERVER);
-	ftp->login(FTP_USER, FTP_PASSWORD);
+    ftp->connectToHost(FTP_SERVER);
+    ftp->login(FTP_USER, "");
 	exec();
 }

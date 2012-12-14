@@ -8,7 +8,6 @@
 /*--- FTP server data for connexion ---*/
 #define FTP_SERVER                  "yoursite.com"
 #define FTP_USER                    "anonymous"
-#define FTP_PASSWORD                ""
 #define FTP_UPDATE_ROOT             "/"
 
 /*--- Content of about dialog ---
