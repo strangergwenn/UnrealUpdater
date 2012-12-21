@@ -31,11 +31,11 @@ Downloader::~Downloader()
 void Downloader::StatusUpdate(int status)
 {
 	switch(status)
-    {
-        case QFtp::LoggedIn:
-            bLoggingIn = false;
-            DownloadFile("", FTP_RELEASE_NOTES_FILE);
-            break;
+	{
+		case QFtp::LoggedIn:
+			bLoggingIn = false;
+			DownloadFile("", FTP_RELEASE_NOTES_FILE);
+			break;
 		default: break;
 	}
 }
@@ -71,9 +71,9 @@ void Downloader::DownloadFile(QString dir, QString file)
 /*--- Received on FTP part downloaded ---*/
 void Downloader::FilePart(void)
 {
-    int count = currentFile->write(ftp->readAll());
+	int count = currentFile->write(ftp->readAll());
 	downloadedSize += count;
-    StartTimeout(5000);
+	StartTimeout(5000);
 
 	emit BytesDownloaded(count);
 	emit PrintCurrentFile(currentFile->fileName());
@@ -85,20 +85,20 @@ void Downloader::FileFinished(int id, bool error)
 {
 	if (error)
 	{
-        if (currentFtpFile != "")
-        {
-            emit PrintStreamedMessage("Error downloading " + currentFtpFile);
-        }
+		if (currentFtpFile != "")
+		{
+			emit PrintStreamedMessage("Error downloading " + currentFtpFile);
+		}
 		emit BytesDownloaded(-downloadedSize);
 		emit FileDownloaded();
-        if (bLoggingIn)
-        {
-            emit AskForPassword();
-        }
+		if (bLoggingIn)
+		{
+			Reconnect();
+		}
 	}
 	else if (get == id && currentFtpFile != "")
-    {
-        timeout->stop();
+	{
+		timeout->stop();
 		currentFile->close();
 		delete currentFile;
 		emit PrintCurrentFile("");
@@ -125,15 +125,16 @@ void Downloader::FileFinished(int id, bool error)
 /*--- Use password to login ---*/
 void Downloader::ReLogin(QString pwd)
 {
-    ftp->login(FTP_USER, pwd);
+	passWd = pwd;
+	ftp->login(FTP_USER, pwd);
 }
 
 
 /*--- Timeout has expired, restart file ---*/
 void Downloader::TimerExpired(void)
 {
-    emit PrintStreamedMessage("Timeout downloading " + currentFtpFile);
-    emit AskForPassword();
+	emit PrintStreamedMessage("Timeout downloading " + currentFtpFile + ", retrying");
+	Reconnect();
 }
 
 
@@ -144,11 +145,16 @@ void Downloader::TimerExpired(void)
 /*--- Start a timer ---*/
 void Downloader::StartTimeout(int millis)
 {
-    timeout->stop();
-    timeout->setSingleShot(true);
-    timeout->start(millis);
+	timeout->stop();
+	timeout->setSingleShot(true);
+	timeout->start(millis);
 }
 
+/*--- Reconnect to server ---*/
+void Downloader::Reconnect()
+{
+	ftp->login(FTP_USER, passWd);
+}
 
 /*--- Launch thread ---*/
 void Downloader::run()
@@ -160,18 +166,18 @@ void Downloader::run()
 	QFile::remove(FTP_MANIFEST_FILE);
 
 	// FTP setup
-    get = -1;
-    bLoggingIn = true;
-    currentFtpFile = "";
-    ftp = new QFtp(this);
-    timeout = new QTimer(this);
-    connect(timeout, SIGNAL(timeout()), this, SLOT(TimerExpired()));
+	get = -1;
+	bLoggingIn = true;
+	currentFtpFile = "";
+	ftp = new QFtp(this);
+	timeout = new QTimer(this);
+	connect(timeout, SIGNAL(timeout()), this, SLOT(TimerExpired()));
 	connect(ftp, SIGNAL(readyRead(void)), this, SLOT(FilePart(void)));
 	connect(ftp, SIGNAL(stateChanged(int)), this, SLOT(StatusUpdate(int)));
 	connect(ftp, SIGNAL(commandFinished(int, bool)), this, SLOT(FileFinished(int, bool)));
 
 	// Launch
-    ftp->connectToHost(FTP_SERVER);
-    emit AskForPassword();
+	ftp->connectToHost(FTP_SERVER);
+	emit AskForPassword();
 	exec();
 }
