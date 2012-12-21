@@ -11,6 +11,13 @@
 #include "common.h"
 
 /*----------------------------------------------
+    Includes & definitions
+----------------------------------------------*/
+
+#include <QTimer>
+
+
+/*----------------------------------------------
 	Class definitions
 ----------------------------------------------*/
 
@@ -28,6 +35,7 @@ class Downloader : public QThread
 		void FilePart(void);
         void FileFinished(int id, bool error);
         void ReLogin(QString pwd);
+        void TimerExpired(void);
 
 	signals:
 		void FileDownloaded(void);
@@ -39,13 +47,16 @@ class Downloader : public QThread
 		void DownloadTreeFromManifest(QString fileName);
 
     private:
+        void StartTimeout(int millis);
 		void run();
 
+        bool    bTimeout;
         bool    bLoggingIn;
 		int     downloadedSize;
         int     get;
         QFtp*   ftp;
 		QFile*  currentFile;
+        QTimer* timeout;
 		QString currentFtpDir;
 		QString currentFtpFile;
 

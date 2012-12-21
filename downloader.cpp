@@ -40,6 +40,7 @@ void Downloader::StatusUpdate(int status)
 	}
 }
 
+
 /*--- Prepare download, then issue the FTP commands ---*/
 void Downloader::DownloadFile(QString dir, QString file)
 {
@@ -66,14 +67,18 @@ void Downloader::DownloadFile(QString dir, QString file)
 	get = ftp->get(currentFtpFile, 0, QFtp::Binary);
 }
 
+
 /*--- Received on FTP part downloaded ---*/
 void Downloader::FilePart(void)
 {
-	int count = currentFile->write(ftp->readAll());
+    int count = currentFile->write(ftp->readAll());
 	downloadedSize += count;
+    StartTimeout(5000);
+
 	emit BytesDownloaded(count);
 	emit PrintCurrentFile(currentFile->fileName());
 }
+
 
 /*--- Received when a command has ended (login, cd, get) ---*/
 void Downloader::FileFinished(int id, bool error)
@@ -92,7 +97,8 @@ void Downloader::FileFinished(int id, bool error)
         }
 	}
 	else if (get == id && currentFtpFile != "")
-	{
+    {
+        timeout->stop();
 		currentFile->close();
 		delete currentFile;
 		emit PrintCurrentFile("");
@@ -115,6 +121,7 @@ void Downloader::FileFinished(int id, bool error)
 	}
 }
 
+
 /*--- Use password to login ---*/
 void Downloader::ReLogin(QString pwd)
 {
@@ -122,9 +129,26 @@ void Downloader::ReLogin(QString pwd)
 }
 
 
+/*--- Timeout has expired, restart file ---*/
+void Downloader::TimerExpired(void)
+{
+    emit PrintStreamedMessage("Timeout downloading " + currentFtpFile);
+    emit AskForPassword();
+}
+
+
 /*----------------------------------------------
 	       Private methods
 ----------------------------------------------*/
+
+/*--- Start a timer ---*/
+void Downloader::StartTimeout(int millis)
+{
+    timeout->stop();
+    timeout->setSingleShot(true);
+    timeout->start(millis);
+}
+
 
 /*--- Launch thread ---*/
 void Downloader::run()
@@ -138,14 +162,16 @@ void Downloader::run()
 	// FTP setup
     get = -1;
     bLoggingIn = true;
-    ftp = new QFtp(this);
     currentFtpFile = "";
+    ftp = new QFtp(this);
+    timeout = new QTimer(this);
+    connect(timeout, SIGNAL(timeout()), this, SLOT(TimerExpired()));
 	connect(ftp, SIGNAL(readyRead(void)), this, SLOT(FilePart(void)));
 	connect(ftp, SIGNAL(stateChanged(int)), this, SLOT(StatusUpdate(int)));
 	connect(ftp, SIGNAL(commandFinished(int, bool)), this, SLOT(FileFinished(int, bool)));
 
 	// Launch
     ftp->connectToHost(FTP_SERVER);
-    ftp->login(FTP_USER, "");
+    emit AskForPassword();
 	exec();
 }
