@@ -6,9 +6,9 @@ A C++ updater for UDK games, built with Qt4.
 Overview
 --------
 
-UUpdater is a lightweight updater software built with Qt4, usable to deploy your UDK game simply over FTP, without additionnal work.
-It was developped for the free FPS [DeepVoid](http://deepvoid.eu/ "DeepVoid"), and is now available for everyone to use. Right now, no major deployment has been made and the tool is still in development, use at your own risks.
-
+UUpdater is a lightweight updater software built with Qt4, usable to deploy your UDK game simply over FTP, without additionnal work.  
+It was developped for the free FPS [DeepVoid](http://deepvoid.eu/ "DeepVoid"), and is now available for everyone to use. Right now, no major deployment has been made and the tool is still in development, use at your own risks.  
+  
 When launched on client, it will trigger .NET 4 installation if not detected, since this is needed by UDK and packed in the standard installer.
 
 
@@ -26,7 +26,7 @@ There are currently a few configuration files in the *Config/* folder, created o
 How to use
 --------
 
-Currently, the updater use a frehs installation of your game. This means that the first condition is that you build, cook and package your game with UnrealFrontend, then install (using the packaged installer) it in a new separated folder.
+Currently, the updater use a frehs installation of your game. This means that the first condition is that you build, cook and package your game with UnrealFrontend, then install (using the packaged installer) it in a new separated folder.  
 This process will generate a file tree that you can use here. Do not use this process on a UDK development folder.
 
 1.  First, edit the image resources in the *Res/* folder to match your game's UI. Use the sample *Res_Sample/* folder and rename it.
@@ -70,8 +70,8 @@ GameManifest.xml syntax
 	</FolderProperties>
 
 
---------
 Contact, people, etc
+--------
 
-UnrealUpdater is developped by Gwennaël ARBONA.
+UnrealUpdater is developped by Gwennaël ARBONA.  
 In case of bugs, questions, requests, ideas, please use the message system on GitHub.
