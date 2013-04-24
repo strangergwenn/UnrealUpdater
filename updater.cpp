@@ -34,27 +34,36 @@ Updater::Updater(QWidget *parent) :
 		SetupAeroEffects(this);
 	#endif
 
-	// Downloader startup
+    // Downloader settings
 	downloadSize = 0;
-	downloadedBytes = 0;
-    dlThread = new Downloader();
-	dlThread->start();
-	PrintUserMessage("downloading release notes");
+    downloadedBytes = 0;
+    dlThread = new QThread;
+    dlObject = new Downloader();
+    dlObject->moveToThread(dlThread);
+    dlThread->start();
 
-	// UI communications
-	connect(ui->about, SIGNAL(clicked(void)), this, SLOT(AboutMe(void)));
+    // Signals - From UI
+    connect(ui->about, SIGNAL(clicked(void)), this, SLOT(AboutMe(void)));
 	connect(ui->launchGame, SIGNAL(clicked(void)), this, SLOT(LaunchGame(void)));
 	connect(ui->isServer, SIGNAL(stateChanged(int)), this, SLOT(SetServerMode(int)));
 	connect(ui->isAutoLaunch, SIGNAL(stateChanged(int)), this, SLOT(SetAutoLaunch(int)));
 
-	// Thread communications
-	connect(dlThread, SIGNAL(DownloadTreeFromManifest(QString)), this, SLOT(DownloadTreeFromManifest(QString)));
-	connect(dlThread, SIGNAL(PrintCurrentFile(QString)), this, SLOT(PrintCurrentFile(QString)));
-    connect(dlThread, SIGNAL(BytesDownloaded(int)), this, SLOT(BytesDownloaded(int)));
-    connect(dlThread, SIGNAL(ShowReleaseNotes(void)), this, SLOT(ShowReleaseNotes(void)));
-    connect(dlThread, SIGNAL(AskForPassword(void)), this, SLOT(AskForPassword(void)));
-	connect(dlThread, SIGNAL(PrintStreamedMessage(QString)), this, SLOT(PrintStreamedMessage(QString)));
-	connect(this, SIGNAL(DownloadFile(QString, QString)), dlThread, SLOT(DownloadFile(QString, QString)));
+    // Signals - From downloader
+    connect(dlObject, SIGNAL(DownloadTreeFromManifest(QString)), this, SLOT(DownloadTreeFromManifest(QString)));
+    connect(dlObject, SIGNAL(PrintCurrentFile(QString)), this, SLOT(PrintCurrentFile(QString)));
+    connect(dlObject, SIGNAL(BytesDownloaded(int)), this, SLOT(BytesDownloaded(int)));
+    connect(dlObject, SIGNAL(ShowReleaseNotes(void)), this, SLOT(ShowReleaseNotes(void)));
+    connect(dlObject, SIGNAL(AskForPassword(void)), this, SLOT(AskForPassword(void)));
+    connect(dlObject, SIGNAL(PrintStreamedMessage(QString)), this, SLOT(PrintStreamedMessage(QString)));
+    connect(dlObject, SIGNAL(PrintHeavyStreamedMessage(QString)), this, SLOT(PrintHeavyStreamedMessage(QString)));
+
+    // Signals - To downloader
+    connect(this, SIGNAL(StartDownloader()), dlObject, SLOT(Connect()));
+    connect(this, SIGNAL(DownloadFile(QString, QString)), dlObject, SLOT(DownloadFile(QString, QString)));
+
+    // Downloader start-up
+    PrintUserMessage("downloading release notes");
+    emit StartDownloader();
 }
 
 Updater::~Updater()
@@ -100,48 +109,48 @@ void Updater::ShowReleaseNotes(void)
 /*--- Download the whole XML contents ---*/
 void Updater::DownloadTreeFromManifest(QString fileName)
 {
-	// Update preparation
-	File_t fd;
-	QDomDocument* dom = new QDomDocument("files");
-	QFile* file = new QFile(fileName);
-	if(file->open(QFile::ReadOnly))
-	{
-		dom->setContent(file);
-		file->close();
-	}
+    // Update preparation
+    File_t fd;
+    QDomDocument* dom = new QDomDocument("files");
+    QFile* file = new QFile(fileName);
+    if(file->open(QFile::ReadOnly))
+    {
+        dom->setContent(file);
+        file->close();
+    }
 
-	// Just what are we downloading ? Signal user
-	filesToDownload.clear();
-	GetFilesToDownload(*dom, "");
-	ui->downloadProgress->setRange(0, downloadSize);
-	PrintUserMessage("downloading " + nextVersion + " (" + QString::number(downloadSize / (1024*1024)) + " MB)");
-	PrintStreamedIfNotNull("files need downloading", filesToDownload);
+    // Just what are we downloading ? Signal user
+    filesToDownload.clear();
+    GetFilesToDownload(*dom, "");
+    ui->downloadProgress->setRange(0, downloadSize);
+    PrintUserMessage("downloading " + nextVersion + " (" + QString::number(downloadSize / (1024*1024)) + " MB)");
+    PrintStreamedIfNotNull("files need downloading", filesToDownload);
 
-	// Update is possible
-	if (!bAbortUpdate)
-	{
-		// Update loop
-		foreach (fd, filesToDownload)
-		{
-			QEventLoop loop;
-			loop.connect(dlThread, SIGNAL(FileDownloaded()), &loop, SLOT(quit()));
-			emit DownloadFile(fd.dir, fd.file);
-			loop.exec();
-			PrintStreamedMessage(fd.dir + fd.file);
-		}
-		PrintStreamedIfNotNull("files downloaded", filesToDownload);
+    // Update is possible
+    if (!bAbortUpdate)
+    {
+        // Update loop
+        foreach (fd, filesToDownload)
+        {
+            QEventLoop loop;
+            loop.connect(dlObject, SIGNAL(FileDownloaded()), &loop, SLOT(quit()));
+            emit DownloadFile(fd.dir, fd.file);
+            loop.exec();
+            PrintStreamedMessage(fd.dir + fd.file);
+        }
+        PrintStreamedIfNotNull("files downloaded", filesToDownload);
 
-		// Update complete : check for corruptions
-		filesToDownload.clear();
-		GetFilesToDownload(*dom, "");
-		PrintStreamedIfNotNull("files not downloaded", filesToDownload);
+        // Update complete : check for corruptions
+        filesToDownload.clear();
+        GetFilesToDownload(*dom, "");
+        PrintStreamedIfNotNull("files not downloaded", filesToDownload);
 
-		// Run
-		InstallNetFramework();
-		UpdateEnded();
-	}
-	delete dom;
-	delete file;
+        // Run
+        InstallNetFramework();
+        UpdateEnded();
+    }
+    delete dom;
+    delete file;
 }
 
 /*--- Received on FTP part received ---*/
@@ -155,17 +164,23 @@ void Updater::BytesDownloaded(int number)
 /*--- Append something to the list of downloaded files ---*/
 void Updater::PrintStreamedMessage(QString message)
 {
-	ui->streamedMessages->append(message);
+    ui->streamedMessages->append(message);
+}
+
+/*--- Append something to the list of downloaded files in bold ---*/
+void Updater::PrintHeavyStreamedMessage(QString message)
+{
+    PrintStreamedMessage(QString(HTML_HEAVY_S) + message + QString(HTML_HEAVY_E));
 }
 
 /*--- Check if the list is not null and display a message including count ---*/
 void Updater::PrintStreamedIfNotNull(QString message, QList<File_t> list)
 {
-	int size = list.size();
-	if (size > 0)
-	{
-		PrintStreamedMessage(QString(HTML_HEAVY_S) + QString::number(size) + " " + message + QString(HTML_HEAVY_E));
-	}
+    int size = list.size();
+    if (size > 0)
+    {
+        PrintHeavyStreamedMessage(QString::number(size) + " " + message);
+    }
 }
 
 /*--- Display the file currently being downloaded ---*/
@@ -234,14 +249,14 @@ void Updater::AboutMe(void)
 /*--- Relaunch the connecting process with a password prompt ---*/
 void Updater::AskForPassword()
 {
-    emit PrintStreamedMessage(QString(HTML_HEAVY_S) + "Update is protected" + QString(HTML_HEAVY_E));
+    PrintHeavyStreamedMessage("Update is protected");
 
     Password* pwdDialog = new Password(this);
     connect(
         pwdDialog,
         SIGNAL(PasswordEntered(QString)),
-        dlThread,
-        SLOT(ReLogin(QString)));
+        dlObject,
+        SLOT(Login(QString)));
     pwdDialog->exec();
 }
 
@@ -277,10 +292,7 @@ void Updater::FormatReleaseNotes(QDomNode node, bool bIsCurrent)
 			{
 				if (tmp == "1")
 				{
-					PrintStreamedMessage(
-						QString(HTML_HEAVY_S) +
-						"New release on server, please try again later" +
-						QString(HTML_HEAVY_E));
+                    PrintHeavyStreamedMessage("New release on server, please try again later");
 					bAbortUpdate = true;
 				}
 			}
@@ -320,66 +332,66 @@ void Updater::FormatReleaseNotes(QDomNode node, bool bIsCurrent)
 /*--- Download a XML node content (recursively) ---*/
 void Updater::GetFilesToDownload(QDomNode node, QString dirName)
 {
-	QDomNode n = node.firstChild();
-	QString fileName;
-	QString fileHash;
-	QString recDir;
-	QFile* tempFile;
-	File_t tempFileData;
-	bool bShouldDownload;
+    QDomNode n = node.firstChild();
+    QString fileName;
+    QString fileHash;
+    QString recDir;
+    QFile* tempFile;
+    File_t tempFileData;
+    bool bShouldDownload;
 
-	while (!n.isNull())
-	{
-		QDomElement e = n.toElement();
-		if (!e.isNull())
-		{
-			// Node : recursive call
-			if (n.hasChildNodes())
-			{
-				recDir = dirName;
-				if (e.tagName() == "FolderProperties" && e.attribute("FolderName", "") != ".")
-				{
-					recDir += e.attribute("FolderName", "") + "/";
-				}
-				GetFilesToDownload(n, recDir);
-			}
+    while (!n.isNull())
+    {
+        QDomElement e = n.toElement();
+        if (!e.isNull())
+        {
+            // Node : recursive call
+            if (n.hasChildNodes())
+            {
+                recDir = dirName;
+                if (e.tagName() == "FolderProperties" && e.attribute("FolderName", "") != ".")
+                {
+                    recDir += e.attribute("FolderName", "") + "/";
+                }
+                GetFilesToDownload(n, recDir);
+            }
 
-			// Element : direct download
-			else
-			{
-				if (e.tagName() == "FileProperties")
-				{
-					bShouldDownload = false;
-					fileName = e.attribute("FileName", "");
-					tempFile = new QFile(dirName + fileName);
+            // Element : direct download
+            else
+            {
+                if (e.tagName() == "FileProperties")
+                {
+                    bShouldDownload = false;
+                    fileName = e.attribute("FileName", "");
+                    tempFile = new QFile(dirName + fileName);
 
-					if (!tempFile->exists())
-					{
-						bShouldDownload = true;
-					}
-					else if (e.attribute("md5", "").length() > 0 && !notUpdatedFiles.contains(fileName))
-					{
-						fileHash = HashFile(tempFile);
-						if (fileHash != e.attribute("md5", "") && fileHash.length() > 0)
-						{
-							bShouldDownload = true;
-						}
-					}
+                    if (!tempFile->exists())
+                    {
+                        bShouldDownload = true;
+                    }
+                    else if (e.attribute("md5", "").length() > 0 && !notUpdatedFiles.contains(fileName))
+                    {
+                        fileHash = HashFile(tempFile);
+                        if (fileHash != e.attribute("md5", "") && fileHash.length() > 0)
+                        {
+                            bShouldDownload = true;
+                        }
+                    }
 
-					if (bShouldDownload)
-					{
-						tempFileData.dir = dirName;
-						tempFileData.file = fileName;
-						tempFileData.size = e.attribute("Size", "").toInt();
-						filesToDownload.append(tempFileData);
-						downloadSize += tempFileData.size;
-					}
-					delete tempFile;
-				}
-			}
-		}
-		n = n.nextSibling();
-	}
+                    if (bShouldDownload)
+                    {
+                        tempFileData.dir = dirName;
+                        tempFileData.file = fileName;
+                        tempFileData.size = e.attribute("Size", "").toInt();
+                        filesToDownload.append(tempFileData);
+                        downloadSize += tempFileData.size;
+                    }
+                    delete tempFile;
+                }
+            }
+        }
+        n = n.nextSibling();
+    }
 }
 
 /*--- Signal the end of the update ---*/
@@ -445,11 +457,11 @@ void Updater::InstallNetFramework(void)
 
 	if (!setting.value("Install").toBool())
 	{
-		PrintStreamedMessage(QString(HTML_HEAVY_S) + "Installing .NET Framework" + QString(HTML_HEAVY_E));
+        PrintHeavyStreamedMessage("Installing .NET Framework");
 		argList << "/passive";
 		argList << "/norestart";
 		netInstaller.startDetached(NET_INSTALLER_PATH, argList);
 		netInstaller.waitForFinished();
-		PrintStreamedMessage(QString(HTML_HEAVY_S) + "Installation done" + QString(HTML_HEAVY_E));
+        PrintHeavyStreamedMessage("Installation done");
 	}
 }

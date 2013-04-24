@@ -5,7 +5,7 @@
  *  @author Gwennaël ARBONA
  **/
 
-#include <QtGui/QApplication>
+#include <QApplication>
 #include "common.h"
 #include "updater.h"
 

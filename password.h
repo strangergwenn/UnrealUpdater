@@ -29,18 +29,18 @@
 class Password : public QDialog
 {
     Q_OBJECT
-public:
-    explicit Password(QWidget *parent = 0);
-    
-signals:
-    void PasswordEntered(QString password);
-    
-public slots:
-    void SlotPassword();
+    public:
+        explicit Password(QWidget *parent = 0);
 
-private:
-    QLineEdit* editPassword;
-    QDialogButtonBox* buttons;
+    signals:
+        void PasswordEntered(QString password);
+
+    public slots:
+        void SlotPassword();
+
+    private:
+        QLineEdit* editPassword;
+        QDialogButtonBox* buttons;
     
 };
 

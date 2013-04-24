@@ -21,7 +21,7 @@
 	Class definitions
 ----------------------------------------------*/
 
-class Downloader : public QThread
+class Downloader : public QObject
 {
 	Q_OBJECT
 
@@ -30,26 +30,26 @@ public:
 	~Downloader();
 
 public slots:
-	void StatusUpdate(int status);
+    void Connect(void);
+    void Reconnect(void);
+    void Login(QString pwd);
 	void DownloadFile(QString dir, QString file);
+    void StatusUpdate(int status);
 	void FilePart(void);
-	void FileFinished(int id, bool error);
-	void ReLogin(QString pwd);
-	void TimerExpired(void);
+    void FileFinished(int id, bool error);
 
 signals:
 	void FileDownloaded(void);
 	void BytesDownloaded(int);
-	void ShowReleaseNotes(void);
-	void AskForPassword(void);
-	void PrintStreamedMessage(QString message);
+    void ShowReleaseNotes(void);
+    void AskForPassword(void);
+    void PrintStreamedMessage(QString message);
+    void PrintHeavyStreamedMessage(QString message);
 	void PrintCurrentFile(QString fileName);
 	void DownloadTreeFromManifest(QString fileName);
 
 private:
-	void StartTimeout(int millis);
-	void Reconnect();
-	void run();
+    void StartTimeout(int millis);
 
 	bool    bTimeout;
 	bool    bLoggingIn;

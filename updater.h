@@ -51,9 +51,10 @@ class Updater : public QMainWindow
 		void ShowReleaseNotes(void);
 		void DownloadTreeFromManifest(QString fileName);
         void BytesDownloaded(int number);
-        void AskForPassword();
+        void AskForPassword(void);
 
-		void PrintStreamedMessage(QString message);
+        void PrintStreamedMessage(QString message);
+        void PrintHeavyStreamedMessage(QString message);
 		void PrintStreamedIfNotNull(QString message, QList<File_t> list);
 		void PrintCurrentFile(QString fileName);
 		void PrintUserMessage(QString message);
@@ -61,14 +62,15 @@ class Updater : public QMainWindow
 		void SetServerMode(int bNewState);
 		void SetAutoLaunch(int bNewState);
 		void LaunchGame(void);
-		void AboutMe(void);
+        void AboutMe(void);
 
-	signals:
-		void DownloadFile(QString dir, QString file);
+    signals:
+        void DownloadFile(QString dir, QString file);
+        void StartDownloader(void);
 
 	private:
-		void FormatReleaseNotes(QDomNode node, bool bIsCurrent);
-		void GetFilesToDownload(QDomNode node, QString dirName);
+        void FormatReleaseNotes(QDomNode node, bool bIsCurrent);
+        void GetFilesToDownload(QDomNode node, QString dirName);
 		void UpdateEnded(void);
 		QString HashFile(QFile* file);
 		void SetLock(bool bLockState);
@@ -77,7 +79,7 @@ class Updater : public QMainWindow
 		bool GetSettingState(QString settingName);
 		void InstallNetFramework(void);
 
-		bool		bAbortUpdate;
+        bool        	bAbortUpdate;
 		bool            bDownloadPart;
 		bool            bServerMode;
 		bool            bAutoLaunch;
@@ -92,7 +94,8 @@ class Updater : public QMainWindow
 		QList<QString>  notUpdatedFiles;
 		QList<File_t>   filesToDownload;
 
-		Downloader*     dlThread;
+        Downloader*     dlObject;
+        QThread*		dlThread;
 		Ui::Updater     *ui;
 };
 
