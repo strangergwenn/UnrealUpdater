@@ -41,10 +41,13 @@ void Downloader::Connect()
     currentFtpFile = "";
     ftp = new QFtp(this);
     timeout = new QTimer(this);
+
+    // FTP signals
     connect(timeout, SIGNAL(timeout()), this, SLOT(Reconnect()));
     connect(ftp, SIGNAL(readyRead(void)), this, SLOT(FilePart(void)));
     connect(ftp, SIGNAL(stateChanged(int)), this, SLOT(StatusUpdate(int)));
     connect(ftp, SIGNAL(commandFinished(int, bool)), this, SLOT(FileFinished(int, bool)));
+    connect(ftp, SIGNAL(done(int, bool)), this, SLOT(AllFinished(int, bool)));
 
     // Launch
     ftp->connectToHost(FTP_SERVER);
@@ -54,9 +57,8 @@ void Downloader::Connect()
 /*--- Timeout has expired, restart file ---*/
 void Downloader::Reconnect()
 {
+    ftp->close();
     emit PrintHeavyStreamedMessage("Timeout downloading " + currentFtpFile + ", retrying");
-    ftp->connectToHost(FTP_SERVER);
-    ftp->login(FTP_USER, passWd);
 }
 
 /*--- Use password to login ---*/
@@ -97,23 +99,33 @@ void Downloader::StatusUpdate(int status)
 {
 	switch(status)
 	{
-		case QFtp::LoggedIn:
-			bLoggingIn = false;
+        case QFtp::LoggedIn:
             emit PrintStreamedMessage("> Logged in");
-			DownloadFile("", FTP_RELEASE_NOTES_FILE);
+            if (bLoggingIn)
+            {
+                bLoggingIn = false;
+                DownloadFile("", FTP_RELEASE_NOTES_FILE);
+            }
             break;
-    case QFtp::Connecting:
-        emit PrintStreamedMessage("> Connecting");
-        break;
-    case QFtp::Connected:
-        emit PrintStreamedMessage("> Connected");
-        break;
-    case QFtp::Closing:
-        emit PrintStreamedMessage("> Disconnecting");
-        break;
-    case QFtp::Unconnected:
-        emit PrintStreamedMessage("> Disconnected");
-        break;
+
+        case QFtp::Connecting:
+            emit PrintStreamedMessage("> Connecting");
+            break;
+
+        case QFtp::Connected:
+            emit PrintStreamedMessage("> Connected");
+            break;
+
+        case QFtp::Closing:
+            emit PrintStreamedMessage("> Disconnecting");
+            break;
+
+        case QFtp::Unconnected:
+            emit PrintStreamedMessage("> Disconnected");
+            ftp->connectToHost(FTP_SERVER);
+            ftp->login(FTP_USER, passWd);
+            break;
+
         default: break;
 	}
 }
@@ -138,8 +150,8 @@ void Downloader::FileFinished(int id, bool error)
 		{
 			emit PrintStreamedMessage("Error downloading " + currentFtpFile);
 		}
-		emit BytesDownloaded(-downloadedSize);
-		emit FileDownloaded();
+        emit BytesDownloaded(-downloadedSize);
+        emit FileDownloaded();
 		if (bLoggingIn)
 		{
             emit Reconnect();
@@ -163,11 +175,20 @@ void Downloader::FileFinished(int id, bool error)
 			emit DownloadTreeFromManifest(QString(FTP_MANIFEST_ROOT) + QString(FTP_MANIFEST_FILE));
 		}
 
-		else
+        else
 		{
 			emit FileDownloaded();
-		}
+        }
 	}
+}
+
+/*--- Received when all command have ended  ---*/
+void Downloader::AllFinished(bool error)
+{
+    if (error)
+    {
+        emit PrintStreamedMessage("Error executing command ");
+    }
 }
 
 

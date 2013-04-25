@@ -134,6 +134,13 @@ void Updater::DownloadTreeFromManifest(QString fileName)
         emit DownloadFile(currentFd.dir, currentFd.file);
         return;
     }
+
+    // File tree is OK
+    else if (filesToDownload.size() == 0)
+    {
+        InstallNetFramework();
+        UpdateEnded();
+    }
     delete dom;
     delete file;
 }
@@ -154,6 +161,7 @@ void Updater::FileDownloaded(void)
     // Download in progress
     if (filesToDownload.size() > 0)
     {
+        Sleep(50);
         currentFd = filesToDownload.takeFirst();
         emit DownloadFile(currentFd.dir, currentFd.file);
     }
@@ -165,8 +173,6 @@ void Updater::FileDownloaded(void)
         PrintHeavyStreamedMessage("Download complete");
         filesToDownload.clear();
         DownloadTreeFromManifest(QString(FTP_MANIFEST_ROOT) + QString(FTP_MANIFEST_FILE));
-        InstallNetFramework();
-        UpdateEnded();
     }
 }
 

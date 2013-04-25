@@ -35,8 +35,9 @@ public slots:
     void Login(QString pwd);
 	void DownloadFile(QString dir, QString file);
     void StatusUpdate(int status);
-	void FilePart(void);
+    void FilePart(void);
     void FileFinished(int id, bool error);
+    void AllFinished(bool error);
 
 signals:
 	void FileDownloaded(void);
