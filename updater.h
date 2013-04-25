@@ -49,8 +49,9 @@ class Updater : public QMainWindow
 
 	public slots:
 		void ShowReleaseNotes(void);
-		void DownloadTreeFromManifest(QString fileName);
+        void DownloadTreeFromManifest(QString fileName);
         void BytesDownloaded(int number);
+        void FileDownloaded(void);
         void AskForPassword(void);
 
         void PrintStreamedMessage(QString message);
@@ -91,6 +92,7 @@ class Updater : public QMainWindow
 		QString         currentVersion;
 		QString         nextVersion;
 
+        File_t          currentFd;
 		QList<QString>  notUpdatedFiles;
 		QList<File_t>   filesToDownload;
 

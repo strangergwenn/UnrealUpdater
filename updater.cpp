@@ -52,6 +52,7 @@ Updater::Updater(QWidget *parent) :
     connect(dlObject, SIGNAL(DownloadTreeFromManifest(QString)), this, SLOT(DownloadTreeFromManifest(QString)));
     connect(dlObject, SIGNAL(PrintCurrentFile(QString)), this, SLOT(PrintCurrentFile(QString)));
     connect(dlObject, SIGNAL(BytesDownloaded(int)), this, SLOT(BytesDownloaded(int)));
+    connect(dlObject, SIGNAL(FileDownloaded(void)), this, SLOT(FileDownloaded(void)));
     connect(dlObject, SIGNAL(ShowReleaseNotes(void)), this, SLOT(ShowReleaseNotes(void)));
     connect(dlObject, SIGNAL(AskForPassword(void)), this, SLOT(AskForPassword(void)));
     connect(dlObject, SIGNAL(PrintStreamedMessage(QString)), this, SLOT(PrintStreamedMessage(QString)));
@@ -126,28 +127,12 @@ void Updater::DownloadTreeFromManifest(QString fileName)
     PrintUserMessage("downloading " + nextVersion + " (" + QString::number(downloadSize / (1024*1024)) + " MB)");
     PrintStreamedIfNotNull("files need downloading", filesToDownload);
 
-    // Update is possible
-    if (!bAbortUpdate)
+    // Send first file to download
+    if (!bAbortUpdate && filesToDownload.size() > 0)
     {
-        // Update loop
-        foreach (fd, filesToDownload)
-        {
-            QEventLoop loop;
-            loop.connect(dlObject, SIGNAL(FileDownloaded()), &loop, SLOT(quit()));
-            emit DownloadFile(fd.dir, fd.file);
-            loop.exec();
-            PrintStreamedMessage(fd.dir + fd.file);
-        }
-        PrintStreamedIfNotNull("files downloaded", filesToDownload);
-
-        // Update complete : check for corruptions
-        filesToDownload.clear();
-        GetFilesToDownload(*dom, "");
-        PrintStreamedIfNotNull("files not downloaded", filesToDownload);
-
-        // Run
-        InstallNetFramework();
-        UpdateEnded();
+        currentFd = filesToDownload.takeFirst();
+        emit DownloadFile(currentFd.dir, currentFd.file);
+        return;
     }
     delete dom;
     delete file;
@@ -156,9 +141,33 @@ void Updater::DownloadTreeFromManifest(QString fileName)
 /*--- Received on FTP part received ---*/
 void Updater::BytesDownloaded(int number)
 {
-	downloadedBytes += number;
-	bDownloadPart = !bDownloadPart;
-	ui->downloadProgress->setValue(downloadedBytes);
+    downloadedBytes += number;
+    bDownloadPart = !bDownloadPart;
+    ui->downloadProgress->setValue(downloadedBytes);
+}
+
+/*--- Received on FTP file downloaded ---*/
+void Updater::FileDownloaded(void)
+{
+    PrintStreamedMessage(currentFd.dir + currentFd.file);
+
+    // Download in progress
+    if (filesToDownload.size() > 0)
+    {
+        currentFd = filesToDownload.takeFirst();
+        emit DownloadFile(currentFd.dir, currentFd.file);
+    }
+
+    // Download complete
+    else
+    {
+        // Check for corruptions and run
+        PrintHeavyStreamedMessage("Download complete");
+        filesToDownload.clear();
+        DownloadTreeFromManifest(QString(FTP_MANIFEST_ROOT) + QString(FTP_MANIFEST_FILE));
+        InstallNetFramework();
+        UpdateEnded();
+    }
 }
 
 /*--- Append something to the list of downloaded files ---*/
