@@ -50,18 +50,16 @@ class Updater : public QMainWindow
 		}
 
 	public slots:
-		void ShowReleaseNotes(void);
-        void DownloadTreeFromManifest(QString fileName);
-        void StartDownload(void);
+        void Stage1(void);
+        void Stage2(void);
+        void Stage3(void);
         void BytesDownloaded(int number);
         void FileDownloaded(void);
         void AskForPassword(void);
 
-        void PrintStreamedMessage(QString message);
-        void PrintHeavyStreamedMessage(QString message);
-		void PrintStreamedIfNotNull(QString message, QList<File_t> list);
-		void PrintCurrentFile(QString fileName);
-		void PrintUserMessage(QString message);
+        void Log(QString message, bool bIsHeavy);
+        void SetCurrentFile(QString fileName);
+        void SetUserMessage(QString message);
 
 		void SetServerMode(int bNewState);
 		void SetAutoLaunch(int bNewState);
@@ -72,8 +70,8 @@ class Updater : public QMainWindow
         void DownloadFile(QString dir, QString file);
 
 	private:
-        void FormatReleaseNotes(QDomNode node, bool bIsCurrent);
-        void GetFilesToDownload(QDomNode node, QString dirName);
+        void ParseReleaseNotes(QDomNode node, bool bIsCurrent);
+        void ParseManifest(QDomNode node, QString dirName);
 
 		QString HashFile(QFile* file);
         void InstallNetFramework(void);

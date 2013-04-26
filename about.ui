@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>470</width>
-    <height>330</height>
+    <width>800</width>
+    <height>570</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,8 +18,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>470</width>
-     <height>330</height>
+     <width>800</width>
+     <height>570</height>
     </rect>
    </property>
    <property name="palette">
@@ -65,14 +65,17 @@
    <property name="pixmap">
     <pixmap resource="UnrealUpdater.qrc">:/data/Res/AboutBackground.png</pixmap>
    </property>
+   <property name="scaledContents">
+    <bool>true</bool>
+   </property>
   </widget>
   <widget class="QTextBrowser" name="aboutText">
    <property name="geometry">
     <rect>
      <x>10</x>
      <y>10</y>
-     <width>451</width>
-     <height>271</height>
+     <width>771</width>
+     <height>511</height>
     </rect>
    </property>
    <property name="sizePolicy">
@@ -221,7 +224,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>290</y>
+     <y>530</y>
      <width>81</width>
      <height>31</height>
     </rect>

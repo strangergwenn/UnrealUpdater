@@ -43,14 +43,13 @@ public slots:
     void FileFinished(QNetworkReply* mreply);
 
 signals:
-	void FileDownloaded(void);
-	void BytesDownloaded(int);
-    void ShowReleaseNotes(void);
     void AskForPassword(void);
-    void PrintStreamedMessage(QString message);
-    void PrintHeavyStreamedMessage(QString message);
-	void PrintCurrentFile(QString fileName);
-	void DownloadTreeFromManifest(QString fileName);
+    void Stage1(void);
+    void Stage2(void);
+    void BytesDownloaded(int);
+    void FileDownloaded(void);
+    void SetCurrentFile(QString fileName);
+    void Log(QString message, bool bIsHeavy);
 
 private:
     bool    bDownloading;

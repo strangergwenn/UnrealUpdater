@@ -38,6 +38,7 @@ void Downloader::Connect()
     // URL setup
     baseUrl = new QUrl();
     baseUrl->setScheme("ftp");
+    baseUrl->setPort(21);
     baseUrl->setHost(FTP_SERVER);
     baseUrl->setUserName(FTP_USER);
 
@@ -59,7 +60,17 @@ void Downloader::Connect()
 /*--- Timeout has expired, restart file ---*/
 void Downloader::Reconnect()
 {
-    emit PrintHeavyStreamedMessage("Timeout downloading " + currentFtpFile + ", retrying");
+    // Suppress the FTP handler
+    emit Log("Timeout downloading " + currentFtpFile, true);
+    disconnect(timeout, SIGNAL(timeout()), this, SLOT(Reconnect()));
+    disconnect(ftp, SIGNAL(finished(QNetworkReply*)), this, SLOT(FileFinished(QNetworkReply*)));
+    delete ftp;
+
+    // Restart it
+    ftp = new QNetworkAccessManager();
+    connect(timeout, SIGNAL(timeout()), this, SLOT(Reconnect()));
+    connect(ftp, SIGNAL(finished(QNetworkReply*)), this, SLOT(FileFinished(QNetworkReply*)));
+    emit DownloadFile(currentFtpDir, currentFtpFile);
 }
 
 /*--- Use password to login ---*/
@@ -111,30 +122,54 @@ void Downloader::FilePart(void)
     int count = currentFile->write(reply->readAll());
     timeout->stop();
     timeout->setSingleShot(true);
-    timeout->start(8192);
+    timeout->start(FTP_TIMEOUT);
     downloadedSize += count;
 
     emit BytesDownloaded(count);
-    emit PrintCurrentFile(currentFile->fileName());
+    emit SetCurrentFile(currentFile->fileName());
 }
 
 /*--- Received when a command has failed ---*/
 void Downloader::FileError(QNetworkReply::NetworkError code)
 {
-    if (bDownloading)
+    switch (code)
     {
-        emit BytesDownloaded(-downloadedSize);
-        emit FileDownloaded();
+        case QNetworkReply::NoError:
+            break;
+
+        case QNetworkReply::ConnectionRefusedError:
+        case QNetworkReply::RemoteHostClosedError:
+        case QNetworkReply::HostNotFoundError:
+        case QNetworkReply::TimeoutError:
+            Log("Networking error (" + QString::number(code) + ")", true);
+            break;
+
+        case QNetworkReply::AuthenticationRequiredError:
+        case QNetworkReply::SslHandshakeFailedError:
+            Log("Security error (" + QString::number(code) + ")", true);
+#ifdef USE_PASSWORD
+            emit AskForPassword();
+#else
+            Login("");
+#endif
+            break;
+
+        case QNetworkReply::ProxyAuthenticationRequiredError:
+        case QNetworkReply::ProxyConnectionRefusedError:
+        case QNetworkReply::ProxyConnectionClosedError:
+        case QNetworkReply::ProxyNotFoundError:
+        case QNetworkReply::ProxyTimeoutError:
+        case QNetworkReply::UnknownProxyError:
+            Log("Proxy error (" + QString::number(code) + ")", true);
+            break;
+
+        default:
+            Log("Server error (" + QString::number(code) + ")", true);
+            break;
     }
-    else
-    {
-        emit Reconnect();
-    }
-    emit PrintStreamedMessage("Networking error (" + QString::number(code) + ")");
-    reply->deleteLater();
 }
 
-/*--- Received when a command has ended (login, cd, get) ---*/
+/*--- Received when a download has ended ---*/
 void Downloader::FileFinished(QNetworkReply* mreply)
 {
     disconnect(reply, SIGNAL(readyRead()), this, SLOT(FilePart()));
@@ -147,16 +182,16 @@ void Downloader::FileFinished(QNetworkReply* mreply)
 		timeout->stop();
 		currentFile->close();
 		delete currentFile;
-		emit PrintCurrentFile("");
+        emit SetCurrentFile("");
 
 		if (currentFtpFile == FTP_RELEASE_NOTES_FILE)
 		{
-			emit ShowReleaseNotes();
+            emit Stage1();
             DownloadFile(FTP_MANIFEST_ROOT, FTP_MANIFEST_FILE);
 		}
 		else if (currentFtpFile == FTP_MANIFEST_FILE)
 		{
-            emit DownloadTreeFromManifest(QString(FTP_MANIFEST_ROOT) + QString(FTP_MANIFEST_FILE));
+            emit Stage2();
 		}
         else
 		{

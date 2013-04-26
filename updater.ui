@@ -49,9 +49,9 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>457</y>
+      <y>466</y>
       <width>655</width>
-      <height>50</height>
+      <height>41</height>
      </rect>
     </property>
     <property name="focusPolicy">
@@ -178,9 +178,9 @@
    <widget class="QTextBrowser" name="releaseNotes">
     <property name="geometry">
      <rect>
-      <x>70</x>
+      <x>10</x>
       <y>10</y>
-      <width>681</width>
+      <width>721</width>
       <height>221</height>
      </rect>
     </property>
@@ -196,18 +196,27 @@
        <colorrole role="WindowText">
         <brush brushstyle="SolidPattern">
          <color alpha="255">
-          <red>200</red>
-          <green>200</green>
-          <blue>200</blue>
+          <red>202</red>
+          <green>202</green>
+          <blue>202</blue>
          </color>
         </brush>
        </colorrole>
        <colorrole role="Text">
         <brush brushstyle="SolidPattern">
          <color alpha="255">
-          <red>200</red>
-          <green>200</green>
-          <blue>200</blue>
+          <red>202</red>
+          <green>202</green>
+          <blue>202</blue>
+         </color>
+        </brush>
+       </colorrole>
+       <colorrole role="BrightText">
+        <brush brushstyle="SolidPattern">
+         <color alpha="255">
+          <red>202</red>
+          <green>202</green>
+          <blue>202</blue>
          </color>
         </brush>
        </colorrole>
@@ -234,18 +243,27 @@
        <colorrole role="WindowText">
         <brush brushstyle="SolidPattern">
          <color alpha="255">
-          <red>200</red>
-          <green>200</green>
-          <blue>200</blue>
+          <red>202</red>
+          <green>202</green>
+          <blue>202</blue>
          </color>
         </brush>
        </colorrole>
        <colorrole role="Text">
         <brush brushstyle="SolidPattern">
          <color alpha="255">
-          <red>200</red>
-          <green>200</green>
-          <blue>200</blue>
+          <red>202</red>
+          <green>202</green>
+          <blue>202</blue>
+         </color>
+        </brush>
+       </colorrole>
+       <colorrole role="BrightText">
+        <brush brushstyle="SolidPattern">
+         <color alpha="255">
+          <red>202</red>
+          <green>202</green>
+          <blue>202</blue>
          </color>
         </brush>
        </colorrole>
@@ -284,6 +302,15 @@
           <red>120</red>
           <green>120</green>
           <blue>120</blue>
+         </color>
+        </brush>
+       </colorrole>
+       <colorrole role="BrightText">
+        <brush brushstyle="SolidPattern">
+         <color alpha="255">
+          <red>202</red>
+          <green>202</green>
+          <blue>202</blue>
          </color>
         </brush>
        </colorrole>
@@ -439,10 +466,10 @@
    <widget class="QTextBrowser" name="streamedMessages">
     <property name="geometry">
      <rect>
-      <x>70</x>
+      <x>10</x>
       <y>240</y>
-      <width>711</width>
-      <height>191</height>
+      <width>721</width>
+      <height>201</height>
      </rect>
     </property>
     <property name="sizePolicy">
@@ -457,18 +484,27 @@
        <colorrole role="WindowText">
         <brush brushstyle="SolidPattern">
          <color alpha="255">
-          <red>200</red>
-          <green>200</green>
-          <blue>200</blue>
+          <red>202</red>
+          <green>202</green>
+          <blue>202</blue>
          </color>
         </brush>
        </colorrole>
        <colorrole role="Text">
         <brush brushstyle="SolidPattern">
          <color alpha="255">
-          <red>200</red>
-          <green>200</green>
-          <blue>200</blue>
+          <red>202</red>
+          <green>202</green>
+          <blue>202</blue>
+         </color>
+        </brush>
+       </colorrole>
+       <colorrole role="BrightText">
+        <brush brushstyle="SolidPattern">
+         <color alpha="255">
+          <red>202</red>
+          <green>202</green>
+          <blue>202</blue>
          </color>
         </brush>
        </colorrole>
@@ -495,18 +531,27 @@
        <colorrole role="WindowText">
         <brush brushstyle="SolidPattern">
          <color alpha="255">
-          <red>200</red>
-          <green>200</green>
-          <blue>200</blue>
+          <red>202</red>
+          <green>202</green>
+          <blue>202</blue>
          </color>
         </brush>
        </colorrole>
        <colorrole role="Text">
         <brush brushstyle="SolidPattern">
          <color alpha="255">
-          <red>200</red>
-          <green>200</green>
-          <blue>200</blue>
+          <red>202</red>
+          <green>202</green>
+          <blue>202</blue>
+         </color>
+        </brush>
+       </colorrole>
+       <colorrole role="BrightText">
+        <brush brushstyle="SolidPattern">
+         <color alpha="255">
+          <red>202</red>
+          <green>202</green>
+          <blue>202</blue>
          </color>
         </brush>
        </colorrole>
@@ -545,6 +590,15 @@
           <red>120</red>
           <green>120</green>
           <blue>120</blue>
+         </color>
+        </brush>
+       </colorrole>
+       <colorrole role="BrightText">
+        <brush brushstyle="SolidPattern">
+         <color alpha="255">
+          <red>202</red>
+          <green>202</green>
+          <blue>202</blue>
          </color>
         </brush>
        </colorrole>
@@ -594,9 +648,9 @@
     <property name="geometry">
      <rect>
       <x>670</x>
-      <y>457</y>
+      <y>466</y>
       <width>121</width>
-      <height>50</height>
+      <height>41</height>
      </rect>
     </property>
     <property name="font">
@@ -615,8 +669,8 @@
     </property>
     <property name="iconSize">
      <size>
-      <width>100</width>
-      <height>35</height>
+      <width>80</width>
+      <height>30</height>
      </size>
     </property>
     <property name="autoDefault">
