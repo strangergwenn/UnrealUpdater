@@ -13,13 +13,13 @@
 ----------------------------------------------*/
 
 #include <QCryptographicHash>
+#include <QDomDocument>
 #include <QTextStream>
 #include <QMainWindow>
 #include <QMessageBox>
 #include <QSettings>
 #include <QProcess>
 #include <QDate>
-#include <QList>
 
 #include "common.h"
 #include "about.h"

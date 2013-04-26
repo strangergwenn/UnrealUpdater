@@ -22,5 +22,4 @@
 
 void SetupAeroEffects(QWidget* widget);
 
-
 #endif // WINDOWSSPECIFIC_H

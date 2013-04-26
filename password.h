@@ -12,15 +12,16 @@
     Includes & definitions
 ----------------------------------------------*/
 
-#include <QDialog>
-#include <QLabel>
-#include <QPushButton>
 #include <QDialogButtonBox>
-#include <QLineEdit>
-#include <QComboBox>
 #include <QGridLayout>
 #include <QStringList>
-#include <QDebug>
+#include <QPushButton>
+#include <QLineEdit>
+#include <QComboBox>
+#include <QLabel>
+
+#include "common.h"
+
 
 /*----------------------------------------------
     Class definitions

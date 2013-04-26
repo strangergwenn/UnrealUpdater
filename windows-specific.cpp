@@ -5,9 +5,7 @@
  *  @author Gwennaël ARBONA
  **/
 
-
 #include "windows-specific.h"
-
 
 /*----------------------------------------------
 	 Private data

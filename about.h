@@ -14,8 +14,6 @@ Includes & definitions
 
 #include "common.h"
 
-#define ABOUT_TITLE       "About"
-
 
 /*----------------------------------------------
 Class definitions
@@ -38,6 +36,5 @@ class About : public QDialog
 };
 
 extern QString TextToHtml(QString data);
-
 
 #endif // ABOUT_H

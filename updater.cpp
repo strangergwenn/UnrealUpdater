@@ -161,15 +161,13 @@ void Updater::FileDownloaded(void)
     // Download in progress
     if (filesToDownload.size() > 0)
     {
-        Sleep(50);
         currentFd = filesToDownload.takeFirst();
         emit DownloadFile(currentFd.dir, currentFd.file);
     }
 
-    // Download complete
+    // Download complete : check for corruptions and run
     else
     {
-        // Check for corruptions and run
         PrintHeavyStreamedMessage("Download complete");
         filesToDownload.clear();
         DownloadTreeFromManifest(QString(FTP_MANIFEST_ROOT) + QString(FTP_MANIFEST_FILE));
@@ -264,14 +262,8 @@ void Updater::AboutMe(void)
 /*--- Relaunch the connecting process with a password prompt ---*/
 void Updater::AskForPassword()
 {
-    PrintHeavyStreamedMessage("Update is protected");
-
     Password* pwdDialog = new Password(this);
-    connect(
-        pwdDialog,
-        SIGNAL(PasswordEntered(QString)),
-        dlObject,
-        SLOT(Login(QString)));
+    connect(pwdDialog, SIGNAL(PasswordEntered(QString)), dlObject, SLOT(Login(QString)));
     pwdDialog->exec();
 }
 

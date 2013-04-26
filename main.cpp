@@ -6,6 +6,7 @@
  **/
 
 #include <QApplication>
+#include <QRegExp>
 #include "common.h"
 #include "updater.h"
 
@@ -44,6 +45,7 @@ QString TextToHtml(QString data)
     QRegExp rxH("\\*(.*)\\*");
     QRegExp rxM("_(.*)_");
     QRegExp rxI("!(.*)!");
+
     rxH.setMinimal(true);
     rxM.setMinimal(true);
     rxI.setMinimal(true);

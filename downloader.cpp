@@ -35,29 +35,29 @@ void Downloader::Connect()
     QFile::remove(FTP_RELEASE_NOTES_FILE);
     QFile::remove(FTP_MANIFEST_FILE);
 
-    // FTP setup
-    get = -1;
-    bLoggingIn = true;
-    currentFtpFile = "";
-    ftp = new QFtp(this);
-    timeout = new QTimer(this);
+    // URL setup
+    baseUrl = new QUrl();
+    baseUrl->setScheme("ftp");
+    baseUrl->setHost(FTP_SERVER);
+    baseUrl->setUserName(FTP_USER);
 
-    // FTP signals
+    // FTP setup
+    currentFtpFile = "";
+    timeout = new QTimer(this);
+    ftp = new QNetworkAccessManager();
     connect(timeout, SIGNAL(timeout()), this, SLOT(Reconnect()));
-    connect(ftp, SIGNAL(readyRead(void)), this, SLOT(FilePart(void)));
-    connect(ftp, SIGNAL(stateChanged(int)), this, SLOT(StatusUpdate(int)));
-    connect(ftp, SIGNAL(commandFinished(int, bool)), this, SLOT(FileFinished(int, bool)));
-    connect(ftp, SIGNAL(done(int, bool)), this, SLOT(AllFinished(int, bool)));
 
     // Launch
-    ftp->connectToHost(FTP_SERVER);
+#ifdef USE_PASSWORD
     emit AskForPassword();
+#else
+    Login("");
+#endif
 }
 
 /*--- Timeout has expired, restart file ---*/
 void Downloader::Reconnect()
 {
-    ftp->close();
     emit PrintHeavyStreamedMessage("Timeout downloading " + currentFtpFile + ", retrying");
 }
 
@@ -65,18 +65,25 @@ void Downloader::Reconnect()
 void Downloader::Login(QString pwd)
 {
     passWd = pwd;
-    ftp->login(FTP_USER, pwd);
+    baseUrl->setPassword(passWd);
+    DownloadFile("", FTP_RELEASE_NOTES_FILE);
 }
 
 /*--- Prepare download, then issue the FTP commands ---*/
 void Downloader::DownloadFile(QString dir, QString file)
 {
     // Data
+    QUrl fileUrl(*baseUrl);
+    QNetworkRequest r;
     QDir tempDir(".");
+
+    // Setup
     downloadedSize = 0;
     currentFtpDir = dir;
     currentFtpFile = file;
     currentFile = new QFile(currentFtpDir + currentFtpFile);
+    fileUrl.setPath(FTP_UPDATE_ROOT + currentFtpDir + currentFtpFile);
+    r.setUrl(fileUrl);
 
     // Local file preparation
     if (currentFtpDir.length() > 0)
@@ -90,75 +97,51 @@ void Downloader::DownloadFile(QString dir, QString file)
     currentFile->open(QIODevice::WriteOnly);
 
     // Download command
-    ftp->cd(FTP_UPDATE_ROOT + QString("/") + currentFtpDir);
-    get = ftp->get(currentFtpFile, 0, QFtp::Binary);
-}
-
-/*--- Received on FTP status change ---*/
-void Downloader::StatusUpdate(int status)
-{
-	switch(status)
-	{
-        case QFtp::LoggedIn:
-            emit PrintStreamedMessage("> Logged in");
-            if (bLoggingIn)
-            {
-                bLoggingIn = false;
-                DownloadFile("", FTP_RELEASE_NOTES_FILE);
-            }
-            break;
-
-        case QFtp::Connecting:
-            emit PrintStreamedMessage("> Connecting");
-            break;
-
-        case QFtp::Connected:
-            emit PrintStreamedMessage("> Connected");
-            break;
-
-        case QFtp::Closing:
-            emit PrintStreamedMessage("> Disconnecting");
-            break;
-
-        case QFtp::Unconnected:
-            emit PrintStreamedMessage("> Disconnected");
-            ftp->connectToHost(FTP_SERVER);
-            ftp->login(FTP_USER, passWd);
-            break;
-
-        default: break;
-	}
+    bDownloading = true;
+    reply = ftp->get(r);
+    reply->setReadBufferSize(FTP_PART_SIZE);
+    connect(reply, SIGNAL(readyRead()), this, SLOT(FilePart()));
+    connect(ftp, SIGNAL(finished(QNetworkReply*)), this, SLOT(FileFinished(QNetworkReply*)));
+    connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(FileError(QNetworkReply::NetworkError)));
 }
 
 /*--- Received on FTP part downloaded ---*/
 void Downloader::FilePart(void)
 {
-	int count = currentFile->write(ftp->readAll());
-	downloadedSize += count;
-	StartTimeout(5000);
+    int count = currentFile->write(reply->readAll());
+    timeout->stop();
+    timeout->setSingleShot(true);
+    timeout->start(8192);
+    downloadedSize += count;
 
-	emit BytesDownloaded(count);
+    emit BytesDownloaded(count);
 	emit PrintCurrentFile(currentFile->fileName());
 }
 
-/*--- Received when a command has ended (login, cd, get) ---*/
-void Downloader::FileFinished(int id, bool error)
+/*--- Received when a command has failed ---*/
+void Downloader::FileError(QNetworkReply::NetworkError code)
 {
-	if (error)
-	{
-		if (currentFtpFile != "")
-		{
-			emit PrintStreamedMessage("Error downloading " + currentFtpFile);
-		}
+    if (bDownloading)
+    {
+        emit PrintStreamedMessage("Error downloading " + currentFtpFile);
         emit BytesDownloaded(-downloadedSize);
         emit FileDownloaded();
-		if (bLoggingIn)
-		{
-            emit Reconnect();
-		}
-	}
-	else if (get == id && currentFtpFile != "")
+    }
+    else
+    {
+        emit PrintStreamedMessage("Networking error");
+        emit Reconnect();
+    }
+    emit PrintStreamedMessage("(error " + QString::number(code) + ")");
+    reply->deleteLater();
+}
+
+/*--- Received when a command has ended (login, cd, get) ---*/
+void Downloader::FileFinished(QNetworkReply* mreply)
+{
+    if (bDownloading)
 	{
+        bDownloading = false;
 		timeout->stop();
 		currentFile->close();
 		delete currentFile;
@@ -167,39 +150,16 @@ void Downloader::FileFinished(int id, bool error)
 		if (currentFtpFile == FTP_RELEASE_NOTES_FILE)
 		{
 			emit ShowReleaseNotes();
-			DownloadFile(FTP_MANIFEST_ROOT, FTP_MANIFEST_FILE);
+            DownloadFile(FTP_MANIFEST_ROOT, FTP_MANIFEST_FILE);
 		}
-
 		else if (currentFtpFile == FTP_MANIFEST_FILE)
 		{
-			emit DownloadTreeFromManifest(QString(FTP_MANIFEST_ROOT) + QString(FTP_MANIFEST_FILE));
+            emit DownloadTreeFromManifest(QString(FTP_MANIFEST_ROOT) + QString(FTP_MANIFEST_FILE));
 		}
-
         else
 		{
-			emit FileDownloaded();
+            emit FileDownloaded();
         }
 	}
-}
-
-/*--- Received when all command have ended  ---*/
-void Downloader::AllFinished(bool error)
-{
-    if (error)
-    {
-        emit PrintStreamedMessage("Error executing command ");
-    }
-}
-
-
-/*----------------------------------------------
-	       Private methods
-----------------------------------------------*/
-
-/*--- Start a timer ---*/
-void Downloader::StartTimeout(int millis)
-{
-	timeout->stop();
-	timeout->setSingleShot(true);
-	timeout->start(millis);
+    mreply->deleteLater();
 }

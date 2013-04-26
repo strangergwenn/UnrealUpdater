@@ -8,13 +8,17 @@
 #ifndef DOWNLOADER_H
 #define DOWNLOADER_H
 
-#include "common.h"
-
 /*----------------------------------------------
     Includes & definitions
 ----------------------------------------------*/
 
+#include <QNetworkAccessManager>
+#include <QNetworkRequest>
+#include <QNetworkReply>
 #include <QTimer>
+#include <QUrl>
+
+#include "common.h"
 
 
 /*----------------------------------------------
@@ -33,11 +37,10 @@ public slots:
     void Connect(void);
     void Reconnect(void);
     void Login(QString pwd);
-	void DownloadFile(QString dir, QString file);
-    void StatusUpdate(int status);
+    void DownloadFile(QString dir, QString file);
     void FilePart(void);
-    void FileFinished(int id, bool error);
-    void AllFinished(bool error);
+    void FileError(QNetworkReply::NetworkError code);
+    void FileFinished(QNetworkReply* mreply);
 
 signals:
 	void FileDownloaded(void);
@@ -50,18 +53,17 @@ signals:
 	void DownloadTreeFromManifest(QString fileName);
 
 private:
-    void StartTimeout(int millis);
-
-	bool    bTimeout;
-	bool    bLoggingIn;
+    bool    bDownloading;
 	int     downloadedSize;
 	int     get;
-	QString passWd;
-	QFtp*   ftp;
+    QString passWd;
+    QUrl*   baseUrl;
 	QFile*  currentFile;
 	QTimer* timeout;
 	QString currentFtpDir;
 	QString currentFtpFile;
+    QNetworkReply* reply;
+    QNetworkAccessManager* ftp;
 
 };
 

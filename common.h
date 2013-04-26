@@ -12,13 +12,12 @@
 	     Includes
 ---------------------------------------------*/
 
-#include <QDomDocument>
 #include <QDialog>
 #include <QThread>
-#include <QRegExp>
+#include <QDebug>
 #include <QFile>
+#include <QList>
 #include <QDir>
-#include <QFtp>
 
 #include "Res/project.h"
 #include "windows-specific.h"
@@ -28,6 +27,10 @@
 	     Definitions
 ---------------------------------------------*/
 
+#define ABOUT_TITLE                 "About"
+
+#define FTP_TIMEOUT                 5000
+#define FTP_PART_SIZE               8192
 #define FTP_MANIFEST_ROOT           "Binaries/InstallData/"
 #define FTP_MANIFEST_FILE           "GameManifest.xml"
 #define FTP_RELEASE_NOTES_FILE      "ReleaseNotes.xml"
@@ -44,6 +47,7 @@
 #define S_AUTOLAUNCH_FILE           "Config/UU_AutoLaunch.setting"
 #define S_MAP_NAME                  "Config/UU_Map.setting"
 
+#define USE_PASSWORD
 #define USE_AERO_EFFECTS
 
 
@@ -52,10 +56,9 @@
 ---------------------------------------------*/
 
 typedef struct File_tag {
-QString     dir;
-QString     file;
-int         size;
+    QString     dir;
+    QString     file;
+    int         size;
 } File_t;
-
 
 #endif // COMMON_H
