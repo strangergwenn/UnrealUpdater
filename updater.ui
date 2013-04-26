@@ -467,9 +467,9 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>240</y>
+      <y>250</y>
       <width>721</width>
-      <height>201</height>
+      <height>191</height>
      </rect>
     </property>
     <property name="sizePolicy">
