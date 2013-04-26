@@ -11,7 +11,6 @@ QT       += xml
 TARGET = UnrealUpdater
 TEMPLATE = app
 
-
 SOURCES += main.cpp\
     about.cpp \
     downloader.cpp \
@@ -36,6 +35,8 @@ RESOURCES += \
     UnrealUpdater.qrc
 
 RC_FILE = UnrealUpdater.rc
+
+QMAKE_CXXFLAGS += -fpermissive -Os
 
 CONFIG += static
 static {

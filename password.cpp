@@ -20,12 +20,12 @@ Password::Password(QWidget *parent) :
     buttons = new QDialogButtonBox(this);
     buttons->addButton(QDialogButtonBox::Ok);
     buttons->addButton(QDialogButtonBox::Cancel);
-    buttons->button(QDialogButtonBox::Ok)->setText("Login");
+    buttons->button(QDialogButtonBox::Ok)->setText("Unlock");
     buttons->button(QDialogButtonBox::Cancel)->setText("Abort");
 
     connect(buttons->button(QDialogButtonBox::Cancel),
         SIGNAL(clicked()),
-        this,
+        parent,
         SLOT(close()));
 
     connect(buttons->button(QDialogButtonBox::Ok),

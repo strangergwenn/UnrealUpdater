@@ -54,8 +54,7 @@ signals:
 
 private:
     bool    bDownloading;
-	int     downloadedSize;
-	int     get;
+    int     downloadedSize;
     QString passWd;
     QUrl*   baseUrl;
 	QFile*  currentFile;

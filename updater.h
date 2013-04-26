@@ -13,6 +13,7 @@
 ----------------------------------------------*/
 
 #include <QCryptographicHash>
+#include <QtConcurrentRun>
 #include <QDomDocument>
 #include <QTextStream>
 #include <QMainWindow>
@@ -67,18 +68,16 @@ class Updater : public QMainWindow
 
     signals:
         void DownloadFile(QString dir, QString file);
-        void StartDownloader(void);
 
 	private:
         void FormatReleaseNotes(QDomNode node, bool bIsCurrent);
         void GetFilesToDownload(QDomNode node, QString dirName);
-		void UpdateEnded(void);
-		QString HashFile(QFile* file);
-		void SetLock(bool bLockState);
 
+		QString HashFile(QFile* file);
+        void InstallNetFramework(void);
+		void SetLock(bool bLockState);
 		void SetSettingState(bool bState, QString settingName);
-		bool GetSettingState(QString settingName);
-		void InstallNetFramework(void);
+        bool GetSettingState(QString settingName);
 
         bool        	bAbortUpdate;
 		bool            bDownloadPart;

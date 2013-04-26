@@ -40,11 +40,10 @@ Updater::Updater(QWidget *parent) :
     dlThread = new QThread;
     dlObject = new Downloader();
     dlObject->moveToThread(dlThread);
-    dlThread->start();
 
     // Signals - From UI
-    connect(ui->about, SIGNAL(clicked(void)), this, SLOT(AboutMe(void)));
-	connect(ui->launchGame, SIGNAL(clicked(void)), this, SLOT(LaunchGame(void)));
+    connect(ui->about, SIGNAL(clicked()), this, SLOT(AboutMe));
+    connect(ui->launchGame, SIGNAL(clicked()), this, SLOT(LaunchGame()));
 	connect(ui->isServer, SIGNAL(stateChanged(int)), this, SLOT(SetServerMode(int)));
 	connect(ui->isAutoLaunch, SIGNAL(stateChanged(int)), this, SLOT(SetAutoLaunch(int)));
 
@@ -52,19 +51,20 @@ Updater::Updater(QWidget *parent) :
     connect(dlObject, SIGNAL(DownloadTreeFromManifest(QString)), this, SLOT(DownloadTreeFromManifest(QString)));
     connect(dlObject, SIGNAL(PrintCurrentFile(QString)), this, SLOT(PrintCurrentFile(QString)));
     connect(dlObject, SIGNAL(BytesDownloaded(int)), this, SLOT(BytesDownloaded(int)));
-    connect(dlObject, SIGNAL(FileDownloaded(void)), this, SLOT(FileDownloaded(void)));
-    connect(dlObject, SIGNAL(ShowReleaseNotes(void)), this, SLOT(ShowReleaseNotes(void)));
-    connect(dlObject, SIGNAL(AskForPassword(void)), this, SLOT(AskForPassword(void)));
+    connect(dlObject, SIGNAL(FileDownloaded()), this, SLOT(FileDownloaded()));
+    connect(dlObject, SIGNAL(ShowReleaseNotes()), this, SLOT(ShowReleaseNotes()));
+    connect(dlObject, SIGNAL(AskForPassword()), this, SLOT(AskForPassword()));
     connect(dlObject, SIGNAL(PrintStreamedMessage(QString)), this, SLOT(PrintStreamedMessage(QString)));
     connect(dlObject, SIGNAL(PrintHeavyStreamedMessage(QString)), this, SLOT(PrintHeavyStreamedMessage(QString)));
 
     // Signals - To downloader
-    connect(this, SIGNAL(StartDownloader()), dlObject, SLOT(Connect()));
+    connect(dlThread, SIGNAL(started()), dlObject, SLOT(Connect()));
+    connect(dlThread, SIGNAL(finished()), dlThread, SLOT(deleteLater()));
     connect(this, SIGNAL(DownloadFile(QString, QString)), dlObject, SLOT(DownloadFile(QString, QString)));
 
     // Downloader start-up
     PrintUserMessage("downloading release notes");
-    emit StartDownloader();
+    dlThread->start();
 }
 
 Updater::~Updater()
@@ -75,7 +75,7 @@ Updater::~Updater()
 
 
 /*----------------------------------------------
-		   Slots
+           Updating slots
 ----------------------------------------------*/
 
 /*--- On release notes download, launch the next steps ---*/
@@ -111,7 +111,6 @@ void Updater::ShowReleaseNotes(void)
 void Updater::DownloadTreeFromManifest(QString fileName)
 {
     // Update preparation
-    File_t fd;
     QDomDocument* dom = new QDomDocument("files");
     QFile* file = new QFile(fileName);
     if(file->open(QFile::ReadOnly))
@@ -122,7 +121,8 @@ void Updater::DownloadTreeFromManifest(QString fileName)
 
     // Just what are we downloading ? Signal user
     filesToDownload.clear();
-    GetFilesToDownload(*dom, "");
+    QFuture<void> parser = QtConcurrent::run(this, &Updater::GetFilesToDownload, *dom, QString(""));
+    parser.waitForFinished();
     ui->downloadProgress->setRange(0, downloadSize);
     PrintUserMessage("downloading " + nextVersion + " (" + QString::number(downloadSize / (1024*1024)) + " MB)");
     PrintStreamedIfNotNull("files need downloading", filesToDownload);
@@ -138,19 +138,20 @@ void Updater::DownloadTreeFromManifest(QString fileName)
     // File tree is OK
     else if (filesToDownload.size() == 0)
     {
+        ui->downloadProgress->setRange(0, 100);
+        ui->downloadProgress->setValue(100);
+        ui->launchGame->setEnabled(true);
+
+        PrintUserMessage("up to date");
         InstallNetFramework();
-        UpdateEnded();
+
+        if (bAutoLaunch)
+        {
+            LaunchGame();
+        }
     }
     delete dom;
     delete file;
-}
-
-/*--- Received on FTP part received ---*/
-void Updater::BytesDownloaded(int number)
-{
-    downloadedBytes += number;
-    bDownloadPart = !bDownloadPart;
-    ui->downloadProgress->setValue(downloadedBytes);
 }
 
 /*--- Received on FTP file downloaded ---*/
@@ -173,6 +174,11 @@ void Updater::FileDownloaded(void)
         DownloadTreeFromManifest(QString(FTP_MANIFEST_ROOT) + QString(FTP_MANIFEST_FILE));
     }
 }
+
+
+/*----------------------------------------------
+                UI slots
+----------------------------------------------*/
 
 /*--- Append something to the list of downloaded files ---*/
 void Updater::PrintStreamedMessage(QString message)
@@ -217,6 +223,14 @@ void Updater::PrintUserMessage(QString message)
 	ui->userInformation->setText(userInfo);
 }
 
+/*--- Received on FTP part received ---*/
+void Updater::BytesDownloaded(int number)
+{
+    downloadedBytes += number;
+    bDownloadPart = !bDownloadPart;
+    ui->downloadProgress->setValue(downloadedBytes);
+}
+
 /*--- Set the server mode ---*/
 void Updater::SetServerMode(int bNewState)
 {
@@ -258,7 +272,6 @@ void Updater::AboutMe(void)
 	aboutDialog->show();
 }
 
-
 /*--- Relaunch the connecting process with a password prompt ---*/
 void Updater::AskForPassword()
 {
@@ -269,7 +282,7 @@ void Updater::AskForPassword()
 
 
 /*----------------------------------------------
-	       Private methods
+           Update methods
 ----------------------------------------------*/
 
 /*--- Analyze release notes, store data and display info ---*/
@@ -401,19 +414,10 @@ void Updater::GetFilesToDownload(QDomNode node, QString dirName)
     }
 }
 
-/*--- Signal the end of the update ---*/
-void Updater::UpdateEnded(void)
-{
-	ui->downloadProgress->setRange(0, 100);
-	ui->downloadProgress->setValue(100);
-	ui->launchGame->setEnabled(true);
-	PrintUserMessage("up to date");
 
-	if (bAutoLaunch)
-	{
-		LaunchGame();
-	}
-}
+/*----------------------------------------------
+           Utilitary methods
+----------------------------------------------*/
 
 /*--- Get a MD5 hash from a file on disk ---*/
 QString Updater::HashFile(QFile* file)

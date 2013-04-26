@@ -46,6 +46,7 @@ void Downloader::Connect()
     timeout = new QTimer(this);
     ftp = new QNetworkAccessManager();
     connect(timeout, SIGNAL(timeout()), this, SLOT(Reconnect()));
+    connect(ftp, SIGNAL(finished(QNetworkReply*)), this, SLOT(FileFinished(QNetworkReply*)));
 
     // Launch
 #ifdef USE_PASSWORD
@@ -101,7 +102,6 @@ void Downloader::DownloadFile(QString dir, QString file)
     reply = ftp->get(r);
     reply->setReadBufferSize(FTP_PART_SIZE);
     connect(reply, SIGNAL(readyRead()), this, SLOT(FilePart()));
-    connect(ftp, SIGNAL(finished(QNetworkReply*)), this, SLOT(FileFinished(QNetworkReply*)));
     connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(FileError(QNetworkReply::NetworkError)));
 }
 
@@ -115,7 +115,7 @@ void Downloader::FilePart(void)
     downloadedSize += count;
 
     emit BytesDownloaded(count);
-	emit PrintCurrentFile(currentFile->fileName());
+    emit PrintCurrentFile(currentFile->fileName());
 }
 
 /*--- Received when a command has failed ---*/
@@ -123,22 +123,24 @@ void Downloader::FileError(QNetworkReply::NetworkError code)
 {
     if (bDownloading)
     {
-        emit PrintStreamedMessage("Error downloading " + currentFtpFile);
         emit BytesDownloaded(-downloadedSize);
         emit FileDownloaded();
     }
     else
     {
-        emit PrintStreamedMessage("Networking error");
         emit Reconnect();
     }
-    emit PrintStreamedMessage("(error " + QString::number(code) + ")");
+    emit PrintStreamedMessage("Networking error (" + QString::number(code) + ")");
     reply->deleteLater();
 }
 
 /*--- Received when a command has ended (login, cd, get) ---*/
 void Downloader::FileFinished(QNetworkReply* mreply)
 {
+    disconnect(reply, SIGNAL(readyRead()), this, SLOT(FilePart()));
+    disconnect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(FileError(QNetworkReply::NetworkError)));
+    mreply->deleteLater();
+
     if (bDownloading)
 	{
         bDownloading = false;
@@ -160,6 +162,5 @@ void Downloader::FileFinished(QNetworkReply* mreply)
 		{
             emit FileDownloaded();
         }
-	}
-    mreply->deleteLater();
+    }
 }
