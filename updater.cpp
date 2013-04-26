@@ -42,7 +42,7 @@ Updater::Updater(QWidget *parent) :
     dlObject->moveToThread(dlThread);
 
     // Signals - From UI
-    connect(ui->about, SIGNAL(clicked()), this, SLOT(AboutMe));
+    connect(ui->about, SIGNAL(clicked()), this, SLOT(AboutMe()));
     connect(ui->launchGame, SIGNAL(clicked()), this, SLOT(LaunchGame()));
 	connect(ui->isServer, SIGNAL(stateChanged(int)), this, SLOT(SetServerMode(int)));
 	connect(ui->isAutoLaunch, SIGNAL(stateChanged(int)), this, SLOT(SetAutoLaunch(int)));
@@ -107,22 +107,32 @@ void Updater::ShowReleaseNotes(void)
 	delete dom;
 }
 
-/*--- Download the whole XML contents ---*/
+/*--- Parse the XML asynchronously ---*/
 void Updater::DownloadTreeFromManifest(QString fileName)
 {
     // Update preparation
-    QDomDocument* dom = new QDomDocument("files");
+    dom = new QDomDocument("files");
     QFile* file = new QFile(fileName);
     if(file->open(QFile::ReadOnly))
     {
         dom->setContent(file);
         file->close();
     }
+    delete file;
 
-    // Just what are we downloading ? Signal user
+    // Parse the XML and signal us back when done
     filesToDownload.clear();
+    QFutureWatcher<void>* watcher = new QFutureWatcher<void>();
+    connect(watcher, SIGNAL(finished()), this, SLOT(StartDownload()));
     QFuture<void> parser = QtConcurrent::run(this, &Updater::GetFilesToDownload, *dom, QString(""));
-    parser.waitForFinished();
+    watcher->setFuture(parser);
+}
+
+/*--- Download the whole XML content ---*/
+void Updater::StartDownload(void)
+{
+    // XML is ready
+    delete dom;
     ui->downloadProgress->setRange(0, downloadSize);
     PrintUserMessage("downloading " + nextVersion + " (" + QString::number(downloadSize / (1024*1024)) + " MB)");
     PrintStreamedIfNotNull("files need downloading", filesToDownload);
@@ -150,8 +160,6 @@ void Updater::DownloadTreeFromManifest(QString fileName)
             LaunchGame();
         }
     }
-    delete dom;
-    delete file;
 }
 
 /*--- Received on FTP file downloaded ---*/
