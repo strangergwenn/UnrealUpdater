@@ -64,7 +64,7 @@ void Downloader::Reconnect()
     emit Log("Timeout downloading " + currentFtpFile, true);
     disconnect(timeout, SIGNAL(timeout()), this, SLOT(Reconnect()));
     disconnect(ftp, SIGNAL(finished(QNetworkReply*)), this, SLOT(FileFinished(QNetworkReply*)));
-    delete ftp;
+    ftp->deleteLater();
 
     // Restart it
     ftp = new QNetworkAccessManager();
@@ -145,12 +145,18 @@ void Downloader::FileError(QNetworkReply::NetworkError code)
             break;
 
         case QNetworkReply::AuthenticationRequiredError:
-        case QNetworkReply::SslHandshakeFailedError:
-            Log("Security error (" + QString::number(code) + ")", true);
 #ifdef USE_PASSWORD
-            emit AskForPassword();
+            Log("Invalid password", true);
 #else
-            Login("");
+            Log("Password is required", true);
+#endif
+            Log("This IP address will be temporary banned after 3 invalid passwords", false);
+#ifdef USE_PASSWORD
+            disconnect(timeout, SIGNAL(timeout()), this, SLOT(Reconnect()));
+            disconnect(ftp, SIGNAL(finished(QNetworkReply*)), this, SLOT(FileFinished(QNetworkReply*)));
+            ftp->deleteLater();
+            timeout->deleteLater();
+            emit Connect();
 #endif
             break;
 

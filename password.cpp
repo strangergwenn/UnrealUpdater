@@ -36,7 +36,7 @@ Password::Password(QWidget *parent) :
     formGridLayout->addWidget(editPassword, 0, 0);
     formGridLayout->addWidget(buttons, 1, 0, 1, 2);
     setLayout(formGridLayout);
-    setWindowTitle("Protected update");
+    setWindowTitle("Locked update");
     setModal(true);
 }
 
