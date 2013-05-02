@@ -75,6 +75,7 @@ class Updater : public QMainWindow
 
 		QString HashFile(QFile* file);
         void InstallNetFramework(void);
+        void InstallVC2010(void);
 		void SetLock(bool bLockState);
 		void SetSettingState(bool bState, QString settingName);
         bool GetSettingState(QString settingName);

@@ -158,6 +158,7 @@ void Updater::Stage3(void)
 
         SetUserMessage("up to date");
         InstallNetFramework();
+        InstallVC2010();
 
         if (bAutoLaunch)
         {
@@ -462,17 +463,35 @@ bool Updater::GetSettingState(QString settingName)
 /*--- Check if .NET needs to be installed, then install it if needed ---*/
 void Updater::InstallNetFramework(void)
 {
-	QStringList argList;
-	QProcess netInstaller(this);
-	QSettings setting(NET_INSTALLER_KEY_PATH, QSettings::NativeFormat);
+    QStringList argList;
+    QProcess netInstaller(this);
+    QSettings setting(NET_INSTALLER_KEY_PATH, QSettings::NativeFormat);
 
-	if (!setting.value("Install").toBool())
-	{
+    if (!setting.value("Install").toBool())
+    {
         Log("Installing .NET Framework", true);
-		argList << "/passive";
-		argList << "/norestart";
-		netInstaller.startDetached(NET_INSTALLER_PATH, argList);
-		netInstaller.waitForFinished();
-        Log("Installation done", true);
-	}
+        argList << "/passive";
+        argList << "/norestart";
+        netInstaller.startDetached(NET_INSTALLER_PATH, argList);
+        netInstaller.waitForFinished();
+        Log("Done", true);
+    }
+}
+
+/*--- Check if VS2010 needs to be installed, then install it if needed ---*/
+void Updater::InstallVC2010(void)
+{
+    QStringList argList;
+    QProcess vcInstaller(this);
+    QSettings setting(VC_INSTALLER_KEY_PATH, QSettings::NativeFormat);
+
+    if (!setting.value("Installed").toBool())
+    {
+        Log("Installing VC2010 redistributable", true);
+        argList << "/passive";
+        argList << "/norestart";
+        vcInstaller.startDetached(VC_INSTALLER_PATH, argList);
+        vcInstaller.waitForFinished();
+        Log("Done", true);
+    }
 }

@@ -38,6 +38,8 @@
 
 #define NET_INSTALLER_KEY_PATH      "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\NET Framework Setup\\NDP\\v4\\Full"
 #define NET_INSTALLER_PATH          "Binaries/InstallData/dotNetFx40_Full_setup.exe"
+#define VC_INSTALLER_KEY_PATH       "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\VisualStudio\\10.0\\VC\\VCRedist\\x86"
+#define VC_INSTALLER_PATH           "Binaries/InstallData/vcredist_x86.exe"
 
 #define UDK_EXE_PATH_32             "Binaries/Win32/UDK.exe"
 
