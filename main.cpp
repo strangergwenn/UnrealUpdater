@@ -21,11 +21,28 @@ int main(int argc, char *argv[])
     // Config directory
     QDir tempDir(".");
     tempDir.mkpath(S_CONFIG_DIR);
+    QString path = QDir::currentPath();
 
     // Standard launch
     if (!Updater::GetLock())
     {
         QApplication a(argc, argv);
+
+        // First launch
+        if (!QFile::exists(S_DVL_INSTALLED))
+        {
+            QMessageBox msgBox;
+            msgBox.setText("The game will be installed in " + path + "/.\n"
+                           + "To change this, press Cancel, then copy this program in the right folder.");
+            msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+            int ret = msgBox.exec();
+            if (ret == QMessageBox::Cancel)
+            {
+                return 0;
+            }
+        }
+
+        // Normal launch
         Updater w;
         w.show();
         return a.exec();

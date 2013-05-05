@@ -50,6 +50,7 @@
 #define S_AUTOLAUNCH_FILE           "Config/UU_AutoLaunch.setting"
 #define S_MAP_NAME                  "Config/UU_Map.setting"
 #define S_UE_INSTALLED              "Config/UU_Installed.setting"
+#define S_DVL_INSTALLED             "Config/UU_Accepted.setting"
 
 #define USE_PASSWORD
 #define USE_AERO_EFFECTS

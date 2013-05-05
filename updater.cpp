@@ -18,14 +18,15 @@ Updater::Updater(QWidget *parent) :
 	QMainWindow(parent),
 	ui(new Ui::Updater)
 {
-	// Configuration
-	SetLock(true);
+    // Configuration
 	bAbortUpdate = false;
 	bDownloadPart = false;
 	bServerMode = GetSettingState(S_SERVER_FILE);
 	bAutoLaunch = GetSettingState(S_AUTOLAUNCH_FILE);
+    SetSettingState(true, S_DVL_INSTALLED);
 
 	// UI settings
+    SetLock(true);
 	ui->setupUi(this);
 	ui->isServer->setCheckState(bServerMode? Qt::Checked : Qt::Unchecked);
 	ui->isAutoLaunch->setCheckState(bAutoLaunch? Qt::Checked : Qt::Unchecked);
@@ -61,7 +62,7 @@ Updater::Updater(QWidget *parent) :
     connect(dlThread, SIGNAL(finished()), dlThread, SLOT(deleteLater()));
     connect(this, SIGNAL(DownloadFile(QString, QString)), dlObject, SLOT(DownloadFile(QString, QString)));
 
-    // Downloader start-up
+    // Launch
     if (!GetSettingState(S_UE_INSTALLED))
     {
         ui->isAutoLaunch->setEnabled(false);
@@ -163,8 +164,8 @@ void Updater::Stage3(void)
 
         SetUserMessage("up to date");
         InstallNetFramework();
-        InstallUE3();
         InstallVC2010();
+        InstallUE3();
 
         if (bAutoLaunch)
         {
