@@ -40,6 +40,7 @@
 #define NET_INSTALLER_PATH          "Binaries/InstallData/dotNetFx40_Full_setup.exe"
 #define VC_INSTALLER_KEY_PATH       "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\VisualStudio\\10.0\\VC\\VCRedist\\x86"
 #define VC_INSTALLER_PATH           "Binaries/InstallData/vcredist_x86.exe"
+#define UE_INSTALLER_PATH           "Binaries/Redist/UE3Redist.exe"
 
 #define UDK_EXE_PATH_32             "Binaries/Win32/UDK.exe"
 
@@ -48,6 +49,7 @@
 #define S_SERVER_FILE               "Config/UU_Dedicated.setting"
 #define S_AUTOLAUNCH_FILE           "Config/UU_AutoLaunch.setting"
 #define S_MAP_NAME                  "Config/UU_Map.setting"
+#define S_UE_INSTALLED              "Config/UU_Installed.setting"
 
 #define USE_PASSWORD
 #define USE_AERO_EFFECTS

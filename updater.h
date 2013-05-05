@@ -73,8 +73,9 @@ class Updater : public QMainWindow
         void ParseReleaseNotes(QDomNode node, bool bIsCurrent);
         void ParseManifest(QDomNode node, QString dirName);
 
-		QString HashFile(QFile* file);
+        QString HashFile(QFile* file);
         void InstallNetFramework(void);
+        void InstallUE3(void);
         void InstallVC2010(void);
 		void SetLock(bool bLockState);
 		void SetSettingState(bool bState, QString settingName);

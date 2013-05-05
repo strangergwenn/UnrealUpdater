@@ -62,6 +62,11 @@ Updater::Updater(QWidget *parent) :
     connect(this, SIGNAL(DownloadFile(QString, QString)), dlObject, SLOT(DownloadFile(QString, QString)));
 
     // Downloader start-up
+    if (!GetSettingState(S_UE_INSTALLED))
+    {
+        ui->isAutoLaunch->setEnabled(false);
+        ui->isAutoLaunch->setTristate(Qt::Unchecked);
+    }
     SetUserMessage("downloading release notes");
     dlThread->start();
 }
@@ -158,6 +163,7 @@ void Updater::Stage3(void)
 
         SetUserMessage("up to date");
         InstallNetFramework();
+        InstallUE3();
         InstallVC2010();
 
         if (bAutoLaunch)
@@ -242,7 +248,7 @@ void Updater::SetServerMode(int bNewState)
 /*--- Set the auto-launch mode ---*/
 void Updater::SetAutoLaunch(int bNewState)
 {
-	bAutoLaunch = (bNewState == Qt::Checked);
+    bAutoLaunch = (bNewState == Qt::Checked) && GetSettingState(S_UE_INSTALLED);
 	SetSettingState((bNewState == Qt::Checked), S_AUTOLAUNCH_FILE);
 }
 
@@ -474,7 +480,20 @@ void Updater::InstallNetFramework(void)
         argList << "/norestart";
         netInstaller.startDetached(NET_INSTALLER_PATH, argList);
         netInstaller.waitForFinished();
-        Log("Done", true);
+    }
+}
+
+/*--- Check if the UE3 redistributables have been installed (DX) ---*/
+void Updater::InstallUE3(void)
+{
+    QProcess ueInstaller(this);
+
+    if (!GetSettingState(S_UE_INSTALLED))
+    {
+        Log("Installing UE3 Redistributable", true);
+        ueInstaller.startDetached(UE_INSTALLER_PATH);
+        ueInstaller.waitForFinished();
+        SetSettingState(true, S_UE_INSTALLED);
     }
 }
 
@@ -492,6 +511,5 @@ void Updater::InstallVC2010(void)
         argList << "/norestart";
         vcInstaller.startDetached(VC_INSTALLER_PATH, argList);
         vcInstaller.waitForFinished();
-        Log("Done", true);
     }
 }
