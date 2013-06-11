@@ -89,7 +89,7 @@ void ServerConfig::SlotEntered()
     QStringList argList;
 
     data = editMap->text();
-    data += "?game=" + editMode->itemData(editMode->currentIndex()).toString();
+    data += "?game=" + QString(UDK_GAME_NAME) + "." + editMode->itemData(editMode->currentIndex()).toString();
     data += "?servername=" + editName->text();
     data += "?serveremail=" + editEmail->text();
     data += "?password=" + editPassword->text();

@@ -44,13 +44,14 @@
 #define UE_INSTALLER_PATH           "Binaries/Redist/UE3Redist.exe"
 
 #define UDK_EXE_PATH_32             "Binaries/Win32/UDK.exe"
+#define UDK_GAME_NAME               "DeepVoid"
 
 #define S_CONFIG_DIR                "Config"
 #define S_LOCK_FILE                 "Config/UU_Lock.setting"
 #define S_UE_INSTALLED              "Config/UU_Installed.setting"
 #define S_DVL_INSTALLED             "Config/UU_Accepted.setting"
 
-//#define USE_PASSWORD
+#define USE_PASSWORD
 #define USE_AERO_EFFECTS
 
 

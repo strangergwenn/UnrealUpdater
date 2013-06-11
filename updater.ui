@@ -50,8 +50,8 @@
      <rect>
       <x>10</x>
       <y>466</y>
-      <width>631</width>
-      <height>41</height>
+      <width>661</width>
+      <height>51</height>
      </rect>
     </property>
     <property name="focusPolicy">
@@ -67,9 +67,9 @@
    <widget class="QLabel" name="userInformation">
     <property name="geometry">
      <rect>
-      <x>20</x>
-      <y>516</y>
-      <width>761</width>
+      <x>10</x>
+      <y>520</y>
+      <width>661</width>
       <height>20</height>
      </rect>
     </property>
@@ -356,8 +356,8 @@
    <widget class="QLabel" name="currentFile">
     <property name="geometry">
      <rect>
-      <x>20</x>
-      <y>536</y>
+      <x>10</x>
+      <y>540</y>
       <width>461</width>
       <height>20</height>
      </rect>
@@ -647,10 +647,10 @@
     </property>
     <property name="geometry">
      <rect>
-      <x>650</x>
+      <x>680</x>
       <y>466</y>
-      <width>141</width>
-      <height>41</height>
+      <width>111</width>
+      <height>51</height>
      </rect>
     </property>
     <property name="font">
@@ -661,7 +661,7 @@
      </font>
     </property>
     <property name="text">
-     <string>Play    </string>
+     <string>Play</string>
     </property>
     <property name="icon">
      <iconset resource="UnrealUpdater.qrc">
@@ -734,25 +734,21 @@
     </property>
     <property name="geometry">
      <rect>
-      <x>650</x>
-      <y>520</y>
-      <width>141</width>
-      <height>41</height>
+      <x>680</x>
+      <y>530</y>
+      <width>111</width>
+      <height>31</height>
      </rect>
     </property>
     <property name="font">
      <font>
-      <pointsize>16</pointsize>
+      <pointsize>12</pointsize>
       <weight>75</weight>
       <bold>true</bold>
      </font>
     </property>
     <property name="text">
      <string>Server</string>
-    </property>
-    <property name="icon">
-     <iconset resource="UnrealUpdater.qrc">
-      <normaloff>:/data/Res/Launch.png</normaloff>:/data/Res/Launch.png</iconset>
     </property>
     <property name="iconSize">
      <size>
