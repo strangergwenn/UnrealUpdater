@@ -20,16 +20,12 @@ Updater::Updater(QWidget *parent) :
 {
     // Configuration
 	bAbortUpdate = false;
-	bDownloadPart = false;
-	bServerMode = GetSettingState(S_SERVER_FILE);
-	bAutoLaunch = GetSettingState(S_AUTOLAUNCH_FILE);
+    bDownloadPart = false;
     SetSettingState(true, S_DVL_INSTALLED);
 
 	// UI settings
     SetLock(true);
-	ui->setupUi(this);
-	ui->isServer->setCheckState(bServerMode? Qt::Checked : Qt::Unchecked);
-	ui->isAutoLaunch->setCheckState(bAutoLaunch? Qt::Checked : Qt::Unchecked);
+    ui->setupUi(this);
 	setWindowTitle(WINDOW_TITLE);
 	#ifdef USE_AERO_EFFECTS
 		SetupAeroEffects(this);
@@ -45,8 +41,7 @@ Updater::Updater(QWidget *parent) :
     // Signals - From UI
     connect(ui->about, SIGNAL(clicked()), this, SLOT(AboutMe()));
     connect(ui->launchGame, SIGNAL(clicked()), this, SLOT(LaunchGame()));
-	connect(ui->isServer, SIGNAL(stateChanged(int)), this, SLOT(SetServerMode(int)));
-	connect(ui->isAutoLaunch, SIGNAL(stateChanged(int)), this, SLOT(SetAutoLaunch(int)));
+    connect(ui->launchServer, SIGNAL(clicked()), this, SLOT(LaunchServer()));
 
     // Signals - From downloader
     connect(dlObject, SIGNAL(AskForPassword()), this, SLOT(AskForPassword()));
@@ -63,11 +58,6 @@ Updater::Updater(QWidget *parent) :
     connect(this, SIGNAL(DownloadFile(QString, QString)), dlObject, SLOT(DownloadFile(QString, QString)));
 
     // Launch
-    if (!GetSettingState(S_UE_INSTALLED))
-    {
-        ui->isAutoLaunch->setEnabled(false);
-        ui->isAutoLaunch->setTristate(Qt::Unchecked);
-    }
     SetUserMessage("downloading release notes");
     dlThread->start();
 }
@@ -160,17 +150,14 @@ void Updater::Stage3(void)
     {
         ui->downloadProgress->setRange(0, 100);
         ui->downloadProgress->setValue(100);
-        ui->launchGame->setEnabled(true);
 
         SetUserMessage("up to date");
         InstallNetFramework();
         InstallVC2010();
         InstallUE3();
 
-        if (bAutoLaunch)
-        {
-            LaunchGame();
-        }
+        ui->launchGame->setEnabled(true);
+        ui->launchServer->setEnabled(true);
     }
 }
 
@@ -239,38 +226,21 @@ void Updater::BytesDownloaded(int number)
     ui->downloadProgress->setValue(downloadedBytes);
 }
 
-/*--- Set the server mode ---*/
-void Updater::SetServerMode(int bNewState)
-{
-	bServerMode = (bNewState == Qt::Checked);
-	SetSettingState((bNewState == Qt::Checked), S_SERVER_FILE);
-}
-
-/*--- Set the auto-launch mode ---*/
-void Updater::SetAutoLaunch(int bNewState)
-{
-    bAutoLaunch = (bNewState == Qt::Checked) && GetSettingState(S_UE_INSTALLED);
-	SetSettingState((bNewState == Qt::Checked), S_AUTOLAUNCH_FILE);
-}
-
 /*--- Launch UDK, exit updater ---*/
 void Updater::LaunchGame(void)
 {
-	QStringList argList;
-	QProcess udk(this);
-	QFile mapName(S_MAP_NAME);
+    QProcess udk(this);
+    udk.startDetached(UDK_EXE_PATH_32);
+    udk.waitForStarted();
+    QApplication::quit();
+}
 
-	if (bServerMode)
-	{
-		mapName.open(QFile::ReadOnly);
-		argList << "server";
-		argList << mapName.readAll() + "?dedicated=true";
-		mapName.close();
-	}
-
-	udk.startDetached(UDK_EXE_PATH_32, argList);
-	udk.waitForStarted();
-	QApplication::quit();
+/*--- Launch UDK server, exit updater ---*/
+void Updater::LaunchServer(void)
+{
+    ServerConfig w;
+    w.exec();
+    QApplication::quit();
 }
 
 /*--- Print the about dialog ---*/

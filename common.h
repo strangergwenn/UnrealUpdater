@@ -12,6 +12,7 @@
 	     Includes
 ---------------------------------------------*/
 
+#include <QMainWindow>
 #include <QDialog>
 #include <QThread>
 #include <QDebug>
@@ -29,7 +30,7 @@
 
 #define ABOUT_TITLE                 "About"
 
-#define FTP_TIMEOUT                 (2000)
+#define FTP_TIMEOUT                 (5000)
 #define FTP_PART_SIZE               (64 * 1024)
 #define FTP_MANIFEST_ROOT           "Binaries/InstallData/"
 #define FTP_MANIFEST_FILE           "GameManifest.xml"
@@ -46,13 +47,10 @@
 
 #define S_CONFIG_DIR                "Config"
 #define S_LOCK_FILE                 "Config/UU_Lock.setting"
-#define S_SERVER_FILE               "Config/UU_Dedicated.setting"
-#define S_AUTOLAUNCH_FILE           "Config/UU_AutoLaunch.setting"
-#define S_MAP_NAME                  "Config/UU_Map.setting"
 #define S_UE_INSTALLED              "Config/UU_Installed.setting"
 #define S_DVL_INSTALLED             "Config/UU_Accepted.setting"
 
-#define USE_PASSWORD
+//#define USE_PASSWORD
 #define USE_AERO_EFFECTS
 
 

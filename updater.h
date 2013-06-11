@@ -25,6 +25,7 @@
 
 #include "common.h"
 #include "about.h"
+#include "serverconfig.h"
 #include "downloader.h"
 
 
@@ -61,9 +62,8 @@ class Updater : public QMainWindow
         void SetCurrentFile(QString fileName);
         void SetUserMessage(QString message);
 
-		void SetServerMode(int bNewState);
-		void SetAutoLaunch(int bNewState);
-		void LaunchGame(void);
+        void LaunchGame(void);
+        void LaunchServer(void);
         void AboutMe(void);
 
     signals:
@@ -82,9 +82,7 @@ class Updater : public QMainWindow
         bool GetSettingState(QString settingName);
 
         bool        	bAbortUpdate;
-		bool            bDownloadPart;
-		bool            bServerMode;
-		bool            bAutoLaunch;
+        bool            bDownloadPart;
 
 		int             downloadedBytes;
 		int             downloadSize;
