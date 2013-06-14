@@ -239,6 +239,7 @@ void Updater::LaunchGame(void)
 void Updater::LaunchServer(void)
 {
     ServerConfig w;
+    hide();
     w.exec();
     QApplication::quit();
 }
@@ -246,7 +247,7 @@ void Updater::LaunchServer(void)
 /*--- Print the about dialog ---*/
 void Updater::AboutMe(void)
 {
-	About* aboutDialog = new About(this);
+    About* aboutDialog = new About(this);
 	aboutDialog->show();
 }
 
