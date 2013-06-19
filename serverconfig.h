@@ -45,11 +45,13 @@ class ServerConfig : public QDialog
         QLabel* labelName;
         QLabel* labelEmail;
         QLabel* labelPassword;
+        QLabel* labelClientPassword;
 
         QLineEdit* editMap;
         QLineEdit* editName;
         QLineEdit* editEmail;
         QLineEdit* editPassword;
+        QLineEdit* editClientPassword;
         QComboBox* editMode;
 
         QDialogButtonBox* buttons;

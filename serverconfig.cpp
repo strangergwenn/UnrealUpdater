@@ -25,6 +25,8 @@ ServerConfig::ServerConfig(QWidget *parent) :
     editEmail = new QLineEdit(this);
     editPassword = new QLineEdit(this);
     editPassword->setEchoMode(QLineEdit::Password);
+    editClientPassword = new QLineEdit(this);
+    editClientPassword->setEchoMode(QLineEdit::Password);
     editMode = new QComboBox(this);
     editMode->addItem("Team Deathmatch", QVariant("G_TeamDeathmatch"));
     editMode->addItem("Capture The Flag", QVariant("G_CaptureTheFlag"));
@@ -39,7 +41,9 @@ ServerConfig::ServerConfig(QWidget *parent) :
     labelEmail = new QLabel(this);
     labelEmail->setText("Admin email");
     labelPassword = new QLabel(this);
-    labelPassword->setText("Server password");
+    labelPassword->setText("Admin password");
+    labelClientPassword = new QLabel(this);
+    labelClientPassword->setText("Server password");
 
     // Buttons
     buttons = new QDialogButtonBox(this);
@@ -64,14 +68,16 @@ ServerConfig::ServerConfig(QWidget *parent) :
     formGridLayout->addWidget(labelMode, 2, 0);
     formGridLayout->addWidget(labelEmail, 3, 0);
     formGridLayout->addWidget(labelPassword, 4, 0);
+    formGridLayout->addWidget(labelClientPassword, 5, 0);
     formGridLayout->addWidget(editName, 0, 1);
     formGridLayout->addWidget(editMap, 1, 1);
     formGridLayout->addWidget(editMode, 2, 1);
     formGridLayout->addWidget(editEmail, 3, 1);
     formGridLayout->addWidget(editPassword, 4, 1);
+    formGridLayout->addWidget(editClientPassword, 5, 1);
 
     // Buttons and end
-    formGridLayout->addWidget(buttons, 5, 0, 5, 2);
+    formGridLayout->addWidget(buttons, 6, 0, 6, 2);
     setLayout(formGridLayout);
     setWindowTitle("Launch server");
     setModal(true);
@@ -92,7 +98,8 @@ void ServerConfig::SlotEntered()
     data += "?game=" + QString(UDK_GAME_NAME) + "." + editMode->itemData(editMode->currentIndex()).toString();
     data += "?servername=" + editName->text();
     data += "?serveremail=" + editEmail->text();
-    data += "?password=" + editPassword->text();
+    data += "?serverpassword=" + editPassword->text();
+    data += "?password=" + editClientPassword->text();
     data += "?dedicated=true";
     argList << "server";
     argList << data;
