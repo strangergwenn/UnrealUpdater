@@ -31,6 +31,7 @@
 #define ABOUT_TITLE                 "About"
 
 #define FTP_TIMEOUT                 (5000)
+#define FTP_SPEED_UPDATE_TIME       (1000)
 #define FTP_PART_SIZE               (64 * 1024)
 #define FTP_MANIFEST_ROOT           "Binaries/InstallData/"
 #define FTP_MANIFEST_FILE           "GameManifest.xml"

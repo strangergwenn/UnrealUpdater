@@ -69,7 +69,7 @@
      <rect>
       <x>10</x>
       <y>450</y>
-      <width>471</width>
+      <width>661</width>
       <height>20</height>
      </rect>
     </property>
@@ -181,7 +181,7 @@
       <x>10</x>
       <y>10</y>
       <width>711</width>
-      <height>271</height>
+      <height>361</height>
      </rect>
     </property>
     <property name="sizePolicy">
@@ -357,9 +357,9 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>300</y>
-      <width>671</width>
-      <height>131</height>
+      <y>370</y>
+      <width>661</width>
+      <height>71</height>
      </rect>
     </property>
     <property name="sizePolicy">
@@ -615,6 +615,11 @@
       <width>800</width>
       <height>500</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <stylestrategy>PreferAntialias</stylestrategy>
+     </font>
     </property>
     <property name="text">
      <string/>

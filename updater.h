@@ -22,6 +22,7 @@
 #include <QSettings>
 #include <QProcess>
 #include <QDate>
+#include <algorithm>
 
 #include "common.h"
 #include "about.h"
@@ -83,8 +84,10 @@ class Updater : public QMainWindow
         bool        	bAbortUpdate;
         bool            bDownloadPart;
 
-		int             downloadedBytes;
-		int             downloadSize;
+        int             downloadedBytes;
+        int             downloadSize;
+        int             remainingFiles;
+
 		QDate           currentDate;
 		QDate           nextDate;
 		QString         currentVersion;

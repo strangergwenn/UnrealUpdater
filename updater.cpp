@@ -128,13 +128,9 @@ void Updater::Stage3(void)
 {
     // XML is ready
     delete dom;
-    int size = filesToDownload.size();
+    remainingFiles = filesToDownload.size();
     ui->downloadProgress->setRange(0, downloadSize);
-    SetUserMessage("Downloading " + nextVersion + " (" + QString::number(downloadSize / (1024*1024)) + " MB)");
-    if (size > 0)
-    {
-        Log(QString::number(size) + QString(" files need downloading"), true);
-    }
+    SetUserMessage("Downloading");
 
     // Send first file to download
     if (!bAbortUpdate && filesToDownload.size() > 0)
@@ -150,10 +146,10 @@ void Updater::Stage3(void)
         ui->downloadProgress->setRange(0, 100);
         ui->downloadProgress->setValue(100);
 
-        SetUserMessage("Ready to play !");
         InstallNetFramework();
         InstallVC2010();
         InstallUE3();
+        SetUserMessage("Ready to play !");
 
         ui->launchGame->setEnabled(true);
         ui->launchServer->setEnabled(true);
@@ -168,6 +164,7 @@ void Updater::FileDownloaded(void)
     // Download in progress
     if (filesToDownload.size() > 0)
     {
+        remainingFiles--;
         currentFd = filesToDownload.takeFirst();
         emit DownloadFile(currentFd.dir, currentFd.file);
     }
@@ -175,7 +172,7 @@ void Updater::FileDownloaded(void)
     // Download complete : check for corruptions and run
     else
     {
-        emit Log("Download complete", true);
+        emit Log("Download complete", false);
         filesToDownload.clear();
         emit Stage2();
     }
@@ -193,6 +190,12 @@ void Updater::Log(QString message, bool bIsHeavy)
     {
         message = QString(HTML_HEAVY_S) + message + QString(HTML_HEAVY_E);
     }
+    else
+    {
+#ifndef USE_FILE_LOG
+        return;
+#endif
+    }
     ui->streamedMessages->append(message);
 }
 
@@ -202,7 +205,7 @@ void Updater::SetUserMessage(QString message)
 	QString userInfo("");
 	if (currentVersion.length() > 0)
 	{
-        userInfo += "Current version : " + QString(HTML_HEAVY_S) + currentVersion + QString(HTML_HEAVY_E) + " | ";
+        userInfo += QString(HTML_HEAVY_S) + currentVersion + QString(HTML_HEAVY_E) + " | ";
 	}
     userInfo += QString(HTML_HEAVY_S) + message + QString(HTML_HEAVY_E);
 	ui->userInformation->setText(userInfo);
@@ -211,9 +214,21 @@ void Updater::SetUserMessage(QString message)
 /*--- Received on FTP part received ---*/
 void Updater::BytesDownloaded(int number)
 {
+    QString message;
+
     downloadedBytes += number;
     bDownloadPart = !bDownloadPart;
     ui->downloadProgress->setValue(downloadedBytes);
+
+    message = "Downloading " + QString::number(remainingFiles);
+    message += (remainingFiles > 1) ? " files " : "file ";
+    if (downloadSize - downloadedBytes > 1024*1024)
+    {
+        message += "(" + QString::number((downloadSize - downloadedBytes) / (1024*1024)) + " MB) ";
+    }
+    message += "at " + QString::number((int)(dlObject->GetCurrentSpeed())) + " KB/s";
+
+    SetUserMessage(message);
 }
 
 /*--- Launch UDK, exit updater ---*/
@@ -437,7 +452,7 @@ void Updater::InstallNetFramework(void)
 
     if (!setting.value("Install").toBool())
     {
-        Log("Installing .NET Framework", true);
+        SetUserMessage("Installing .NET Framework");
         argList << "/passive";
         argList << "/norestart";
         netInstaller.startDetached(NET_INSTALLER_PATH, argList);
@@ -452,7 +467,7 @@ void Updater::InstallUE3(void)
 
     if (!GetSettingState(S_UE_INSTALLED))
     {
-        Log("Installing UE3 Redistributable", true);
+        SetUserMessage("Installing UE3 redistributable");
         ueInstaller.startDetached(UE_INSTALLER_PATH);
         ueInstaller.waitForFinished();
         SetSettingState(true, S_UE_INSTALLED);
@@ -468,7 +483,7 @@ void Updater::InstallVC2010(void)
 
     if (!setting.value("Installed").toBool())
     {
-        Log("Installing VC2010 redistributable", true);
+        SetUserMessage("Installing VC2010 redistributable");
         argList << "/passive";
         argList << "/norestart";
         vcInstaller.startDetached(VC_INSTALLER_PATH, argList);

@@ -16,6 +16,7 @@
 #include <QNetworkRequest>
 #include <QNetworkReply>
 #include <QTimer>
+#include <QTime>
 #include <QUrl>
 
 #include "common.h"
@@ -32,6 +33,7 @@ class Downloader : public QObject
 public:
 	Downloader();
 	~Downloader();
+    float GetCurrentSpeed();
 
 public slots:
     void Connect(void);
@@ -39,6 +41,7 @@ public slots:
     void Login(QString pwd);
     void DownloadFile(QString dir, QString file);
     void FilePart(void);
+    void UpdateSpeed(void);
     void FileError(QNetworkReply::NetworkError code);
     void FileFinished(QNetworkReply* mreply);
 
@@ -52,12 +55,16 @@ signals:
     void Log(QString message, bool bIsHeavy);
 
 private:
+    float   currentSpeed;
     bool    bDownloading;
     int     downloadedSize;
+    int     chronoSize;
     QString passWd;
     QUrl*   baseUrl;
 	QFile*  currentFile;
-	QTimer* timeout;
+    QTime*  chrono;
+    QTimer* timeout;
+    QTimer* chronoTimeout;
 	QString currentFtpDir;
 	QString currentFtpFile;
     QNetworkReply* reply;
