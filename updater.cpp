@@ -49,7 +49,6 @@ Updater::Updater(QWidget *parent) :
     connect(dlObject, SIGNAL(Stage2()), this, SLOT(Stage2()));
     connect(dlObject, SIGNAL(BytesDownloaded(int)), this, SLOT(BytesDownloaded(int)));
     connect(dlObject, SIGNAL(FileDownloaded()), this, SLOT(FileDownloaded()));
-    connect(dlObject, SIGNAL(SetCurrentFile(QString)), this, SLOT(SetCurrentFile(QString)));
     connect(dlObject, SIGNAL(Log(QString, bool)), this, SLOT(Log(QString, bool)));
 
     // Signals - To downloader
@@ -58,7 +57,7 @@ Updater::Updater(QWidget *parent) :
     connect(this, SIGNAL(DownloadFile(QString, QString)), dlObject, SLOT(DownloadFile(QString, QString)));
 
     // Launch
-    SetUserMessage("downloading release notes");
+    SetUserMessage("Downloading release notes");
     dlThread->start();
 }
 
@@ -98,7 +97,7 @@ void Updater::Stage1(void)
 	delete file;
 
 	// Ready to go
-    SetUserMessage("downloading manifest");
+    SetUserMessage("Downloading manifest");
 	delete dom;
 }
 
@@ -116,7 +115,7 @@ void Updater::Stage2(void)
     delete file;
 
     // Parse the XML and signal us back when done
-    SetUserMessage("checking local files");
+    SetUserMessage("Checking local files");
     filesToDownload.clear();
     QFutureWatcher<void>* watcher = new QFutureWatcher<void>();
     connect(watcher, SIGNAL(finished()), this, SLOT(Stage3()));
@@ -131,7 +130,7 @@ void Updater::Stage3(void)
     delete dom;
     int size = filesToDownload.size();
     ui->downloadProgress->setRange(0, downloadSize);
-    SetUserMessage("downloading " + nextVersion + " (" + QString::number(downloadSize / (1024*1024)) + " MB)");
+    SetUserMessage("Downloading " + nextVersion + " (" + QString::number(downloadSize / (1024*1024)) + " MB)");
     if (size > 0)
     {
         Log(QString::number(size) + QString(" files need downloading"), true);
@@ -151,7 +150,7 @@ void Updater::Stage3(void)
         ui->downloadProgress->setRange(0, 100);
         ui->downloadProgress->setValue(100);
 
-        SetUserMessage("up to date");
+        SetUserMessage("Ready to play !");
         InstallNetFramework();
         InstallVC2010();
         InstallUE3();
@@ -197,24 +196,15 @@ void Updater::Log(QString message, bool bIsHeavy)
     ui->streamedMessages->append(message);
 }
 
-/*--- Display the file currently being downloaded ---*/
-void Updater::SetCurrentFile(QString fileName)
-{
-	QString text = fileName + ((bDownloadPart && fileName.length() > 0) ? "  >":"");
-	ui->currentFile->setText(text);
-}
-
 /*--- Print the status message ---*/
 void Updater::SetUserMessage(QString message)
 {
 	QString userInfo("");
 	if (currentVersion.length() > 0)
 	{
-		userInfo += "Current version : " + QString(HTML_HEAVY_S) + currentVersion + QString(HTML_HEAVY_E);
-		userInfo += " | Updated ";
-		userInfo += QString(HTML_HEAVY_S) + currentDate.toString("dd/MM/yy") + QString(HTML_HEAVY_E) + " | ";
+        userInfo += "Current version : " + QString(HTML_HEAVY_S) + currentVersion + QString(HTML_HEAVY_E) + " | ";
 	}
-	userInfo += "Status : " + QString(HTML_HEAVY_S) + message + QString(HTML_HEAVY_E);
+    userInfo += QString(HTML_HEAVY_S) + message + QString(HTML_HEAVY_E);
 	ui->userInformation->setText(userInfo);
 }
 

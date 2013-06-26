@@ -59,7 +59,6 @@ class Updater : public QMainWindow
         void AskForPassword(void);
 
         void Log(QString message, bool bIsHeavy);
-        void SetCurrentFile(QString fileName);
         void SetUserMessage(QString message);
 
         void LaunchGame(void);
