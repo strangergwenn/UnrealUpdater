@@ -15,8 +15,9 @@
 ----------------------------------------------*/
 
 Updater::Updater(QWidget *parent) :
-	QMainWindow(parent),
-	ui(new Ui::Updater)
+    QMainWindow(parent),
+    filesToDownload(QList<File_t> ()),
+    ui(new Ui::Updater)
 {
     // Configuration
 	bAbortUpdate = false;

@@ -31,7 +31,7 @@
 #define ABOUT_TITLE                 "About"
 
 #define FTP_TIMEOUT                 (5000)
-#define FTP_SPEED_UPDATE_TIME       (1000)
+#define FTP_SPEED_UPDATE_TIME       (2000)
 #define FTP_PART_SIZE               (64 * 1024)
 #define FTP_MANIFEST_ROOT           "Binaries/InstallData/"
 #define FTP_MANIFEST_FILE           "GameManifest.xml"
@@ -49,8 +49,9 @@
 
 #define S_CONFIG_DIR                "Config"
 #define S_LOCK_FILE                 "Config/UU_Lock.setting"
-#define S_UE_INSTALLED              "Config/UU_Installed.setting"
 #define S_DVL_INSTALLED             "Config/UU_Accepted.setting"
+#define S_UE_INSTALLED              "Config/UU_Installed.setting"
+#define S_SERVER_SETTINGS           "Config/UU_Server.setting"
 
 #define USE_AERO_EFFECTS
 

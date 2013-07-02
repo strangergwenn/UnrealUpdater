@@ -13,7 +13,7 @@
 ----------------------------------------------*/
 
 #include <QDialogButtonBox>
-#include <QGridLayout>
+#include <QFormLayout>
 #include <QStringList>
 #include <QPushButton>
 #include <QLineEdit>
@@ -40,12 +40,11 @@ class ServerConfig : public QDialog
         void SlotEntered();
 
     private:
-        QLabel* labelMap;
-        QLabel* labelMode;
-        QLabel* labelName;
-        QLabel* labelEmail;
-        QLabel* labelPassword;
-        QLabel* labelClientPassword;
+
+        void Save(void);
+        void Load(void);
+
+        QLabel* comment;
 
         QLineEdit* editMap;
         QLineEdit* editName;

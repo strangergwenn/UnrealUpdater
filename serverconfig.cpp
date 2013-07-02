@@ -15,7 +15,8 @@
 ServerConfig::ServerConfig(QWidget *parent) :
     QDialog(parent)
 {
-    QGridLayout* formGridLayout = new QGridLayout(this);
+    QVBoxLayout* mainLayout = new QVBoxLayout(this);
+    QFormLayout* layout = new QFormLayout(this);
 
     // Fields
     editName = new QLineEdit(this);
@@ -30,20 +31,10 @@ ServerConfig::ServerConfig(QWidget *parent) :
     editMode = new QComboBox(this);
     editMode->addItem("Team Deathmatch", QVariant("G_TeamDeathmatch"));
     editMode->addItem("Capture The Flag", QVariant("G_CaptureTheFlag"));
-
-    // Labels
-    labelName = new QLabel(this);
-    labelName->setText("Server name");
-    labelMap = new QLabel(this);
-    labelMap->setText("Level name");
-    labelMode = new QLabel(this);
-    labelMode->setText("Game mode");
-    labelEmail = new QLabel(this);
-    labelEmail->setText("Admin email");
-    labelPassword = new QLabel(this);
-    labelPassword->setText("Admin password");
-    labelClientPassword = new QLabel(this);
-    labelClientPassword->setText("Server password");
+    comment = new QLabel(this);
+    comment->setWordWrap(true);
+    comment->setText("<i>Before a server can be displayed in the server browser, administrators must register at deepvoid.eu/play</i>");
+    Load();
 
     // Buttons
     buttons = new QDialogButtonBox(this);
@@ -62,23 +53,20 @@ ServerConfig::ServerConfig(QWidget *parent) :
         this,
         SLOT(SlotEntered()));
 
-    // Layout
-    formGridLayout->addWidget(labelName, 0, 0);
-    formGridLayout->addWidget(labelMap, 1, 0);
-    formGridLayout->addWidget(labelMode, 2, 0);
-    formGridLayout->addWidget(labelEmail, 3, 0);
-    formGridLayout->addWidget(labelPassword, 4, 0);
-    formGridLayout->addWidget(labelClientPassword, 5, 0);
-    formGridLayout->addWidget(editName, 0, 1);
-    formGridLayout->addWidget(editMap, 1, 1);
-    formGridLayout->addWidget(editMode, 2, 1);
-    formGridLayout->addWidget(editEmail, 3, 1);
-    formGridLayout->addWidget(editPassword, 4, 1);
-    formGridLayout->addWidget(editClientPassword, 5, 1);
+    // Form layout
+    layout->addRow("Server name", editName);
+    layout->addRow("Level name", editMap);
+    layout->addRow("Game mode", editMode);
+    layout->addRow("Admin email", editEmail);
+    layout->addRow("Admin password", editPassword);
+    layout->addRow("Server password", editClientPassword);
 
-    // Buttons and end
-    formGridLayout->addWidget(buttons, 6, 0, 6, 2);
-    setLayout(formGridLayout);
+    // Main layout
+    mainLayout->addLayout(layout);
+    mainLayout->addWidget(comment);
+    mainLayout->addWidget(buttons);
+    setLayout(mainLayout);
+    setFixedSize(350, 250);
     setWindowTitle("Launch server");
     setModal(true);
 }
@@ -99,12 +87,47 @@ void ServerConfig::SlotEntered()
     data += "?servername=" + editName->text();
     data += "?serveremail=" + editEmail->text();
     data += "?serverpassword=" + editPassword->text();
-    data += "?password=" + editClientPassword->text();
+    data += "?GamePassword=" + editClientPassword->text();
     data += "?dedicated=true";
     argList << "server";
     argList << data;
 
+    Save();
     udk.startDetached(UDK_EXE_PATH_32, argList);
     udk.waitForStarted();
     close();
 }
+
+
+/*--- Save the config to settings ---*/
+void ServerConfig::Save()
+{
+    QFile settingFile(S_SERVER_SETTINGS);
+
+    settingFile.open(QFile::WriteOnly);
+    settingFile.write((editName->text() + "\n").toStdString().c_str());
+    settingFile.write((editMap->text() + "\n").toStdString().c_str());
+    settingFile.write((editEmail->text() + "\n").toStdString().c_str());
+    settingFile.write((editClientPassword->text() + "\n").toStdString().c_str());
+    settingFile.close();
+}
+
+
+/*--- Load the config from settings ---*/
+void ServerConfig::Load()
+{
+    QList<QByteArray> content;
+    QFile settingFile(S_SERVER_SETTINGS);
+
+    settingFile.open(QFile::ReadOnly);
+    content = settingFile.readAll().split('\n');
+    if (content.length() > 3)
+    {
+        editName->setText(QString(content[0].data()));
+        editMap->setText(QString(content[1].data()));
+        editEmail->setText(QString(content[2].data()));
+        editClientPassword->setText(QString(content[3].data()));
+    }
+    settingFile.close();
+}
+
