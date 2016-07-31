@@ -29,6 +29,8 @@ Downloader::~Downloader()
 /*--- Launch thread ---*/
 void Downloader::Connect()
 {
+    qDebug() << "Downloader::Connect";
+
     // Files init
     QFile::remove(FTP_OLD_RELEASE_NOTES_FILE);
     QFile::copy(FTP_RELEASE_NOTES_FILE, FTP_OLD_RELEASE_NOTES_FILE);
@@ -76,6 +78,8 @@ float Downloader::GetCurrentSpeed()
 /*--- Timeout has expired, restart file ---*/
 void Downloader::Reconnect()
 {
+    qDebug() << "Downloader::Reconnect";
+
     // Suppress the FTP handler
     emit Log("Timeout downloading " + currentFtpFile, false);
     disconnect(timeout, SIGNAL(timeout()), this, SLOT(Reconnect()));
@@ -92,6 +96,8 @@ void Downloader::Reconnect()
 /*--- Use password to login ---*/
 void Downloader::Login(QString pwd)
 {
+    qDebug() << "Downloader::Login";
+
     passWd = pwd;
     baseUrl->setPassword(passWd);
     DownloadFile("", FTP_RELEASE_NOTES_FILE);
@@ -100,6 +106,8 @@ void Downloader::Login(QString pwd)
 /*--- Prepare download, then issue the FTP commands ---*/
 void Downloader::DownloadFile(QString dir, QString file)
 {
+    qDebug() << "Downloader::DownloadFile " + dir + file;
+
     // Data
     QUrl fileUrl(*baseUrl);
     QNetworkRequest r;
@@ -161,6 +169,8 @@ void Downloader::UpdateSpeed(void)
 /*--- Received when a command has failed ---*/
 void Downloader::FileError(QNetworkReply::NetworkError code)
 {
+    qDebug() << "Downloader::FileError on " + currentFtpDir + currentFtpFile;
+
     switch (code)
     {
         case QNetworkReply::NoError:
@@ -170,16 +180,18 @@ void Downloader::FileError(QNetworkReply::NetworkError code)
         case QNetworkReply::RemoteHostClosedError:
         case QNetworkReply::HostNotFoundError:
         case QNetworkReply::TimeoutError:
+            qDebug() << "Downloader::FileError : network error " + QString::number(code);
             Log("Networking error (" + QString::number(code) + ")", true);
             break;
 
         case QNetworkReply::AuthenticationRequiredError:
+            qDebug() << "Downloader::FileError : authentication error " + QString::number(code);
 #ifdef USE_PASSWORD
             Log("Invalid password", true);
 #else
             Log("Password is required", true);
 #endif
-            Log("This IP address will be temporary banned after 3 invalid passwords", true);
+            Log("This IP address will be temporary banned after too many invalid passwords", true);
             timeout->stop();
             chronoTimeout->stop();
 #ifdef USE_PASSWORD
@@ -198,10 +210,12 @@ void Downloader::FileError(QNetworkReply::NetworkError code)
         case QNetworkReply::ProxyNotFoundError:
         case QNetworkReply::ProxyTimeoutError:
         case QNetworkReply::UnknownProxyError:
+            qDebug() << "Downloader::FileError : proxy error " + QString::number(code);
             Log("Proxy error (" + QString::number(code) + ")", true);
             break;
 
         default:
+            qDebug() << "Downloader::FileError : server error " + QString::number(code);
             Log("Server error (" + QString::number(code) + ")", true);
             break;
     }
@@ -210,6 +224,8 @@ void Downloader::FileError(QNetworkReply::NetworkError code)
 /*--- Received when a download has ended ---*/
 void Downloader::FileFinished(QNetworkReply* mreply)
 {
+    qDebug() << "Downloader::FileFinished";
+
     disconnect(reply, SIGNAL(readyRead()), this, SLOT(FilePart()));
     disconnect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(FileError(QNetworkReply::NetworkError)));
     mreply->deleteLater();

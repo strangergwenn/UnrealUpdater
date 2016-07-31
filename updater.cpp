@@ -71,6 +71,8 @@ Updater::~Updater()
 /*--- Stage 1 : parse the release notes, then download the manifest ---*/
 void Updater::Stage1(void)
 {
+    qDebug() << "Updater::Stage1";
+
     // New version : use downloaded manifest
 	QDomDocument* dom = new QDomDocument("notes");
 	QFile* file = new QFile(FTP_RELEASE_NOTES_FILE);
@@ -100,6 +102,8 @@ void Updater::Stage1(void)
 /*--- Stage 2 : parse the manifest, then start the actual download ---*/
 void Updater::Stage2(void)
 {
+    qDebug() << "Updater::Stage2";
+
     // Update preparation
     dom = new QDomDocument("files");
     QFile* file = new QFile(QString(FTP_MANIFEST_ROOT) + QString(FTP_MANIFEST_FILE));
@@ -122,6 +126,8 @@ void Updater::Stage2(void)
 /*--- Stage 3 : download the files if some are needed ---*/
 void Updater::Stage3(void)
 {
+    qDebug() << "Updater::Stage3";
+
     // XML is ready
     delete dom;
     remainingFiles = filesToDownload.size();
@@ -142,9 +148,7 @@ void Updater::Stage3(void)
         ui->downloadProgress->setRange(0, 100);
         ui->downloadProgress->setValue(100);
 
-        InstallNetFramework();
-        InstallVC2010();
-        InstallUE3();
+        InstallUrealRedist();
         SetUserMessage("Ready to play !");
 
         ui->launchGame->setEnabled(true);
@@ -226,11 +230,11 @@ void Updater::BytesDownloaded(int number)
     SetUserMessage(message);
 }
 
-/*--- Launch UDK, exit updater ---*/
+/*--- Launch Unreal, exit updater ---*/
 void Updater::LaunchGame(void)
 {
     QProcess udk(this);
-    udk.startDetached(UDK_EXE_PATH_32);
+    udk.startDetached(UNREAL_EXECUTABLE);
     udk.waitForStarted();
     QApplication::quit();
 }
@@ -429,50 +433,16 @@ bool Updater::GetSettingState(QString settingName)
 	return QFile::exists(settingName);
 }
 
-/*--- Check if .NET needs to be installed, then install it if needed ---*/
-void Updater::InstallNetFramework(void)
-{
-    QStringList argList;
-    QProcess netInstaller(this);
-    QSettings setting(NET_INSTALLER_KEY_PATH, QSettings::NativeFormat);
-
-    if (!setting.value("Install").toBool())
-    {
-        SetUserMessage("Installing .NET Framework");
-        argList << "/passive";
-        argList << "/norestart";
-        netInstaller.startDetached(NET_INSTALLER_PATH, argList);
-        netInstaller.waitForFinished();
-    }
-}
-
-/*--- Check if the UE3 redistributables have been installed (DX) ---*/
-void Updater::InstallUE3(void)
+/*--- Check if the UE4 redistributables have been installed ---*/
+void Updater::InstallUrealRedist(void)
 {
     QProcess ueInstaller(this);
 
     if (!GetSettingState(S_UE_INSTALLED))
     {
-        SetUserMessage("Installing UE3 redistributable");
+        SetUserMessage("Installing UE4 redistributables");
         ueInstaller.startDetached(UE_INSTALLER_PATH);
         ueInstaller.waitForFinished();
         SetSettingState(true, S_UE_INSTALLED);
-    }
-}
-
-/*--- Check if VS2010 needs to be installed, then install it if needed ---*/
-void Updater::InstallVC2010(void)
-{
-    QStringList argList;
-    QProcess vcInstaller(this);
-    QSettings setting(VC_INSTALLER_KEY_PATH, QSettings::NativeFormat);
-
-    if (!setting.value("Installed").toBool())
-    {
-        SetUserMessage("Installing VC2010 redistributable");
-        argList << "/passive";
-        argList << "/norestart";
-        vcInstaller.startDetached(VC_INSTALLER_PATH, argList);
-        vcInstaller.waitForFinished();
     }
 }

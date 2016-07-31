@@ -73,9 +73,7 @@ class Updater : public QMainWindow
         void ParseManifest(QDomNode node, QString dirName);
 
         QString HashFile(QFile* file);
-        void InstallNetFramework(void);
-        void InstallUE3(void);
-        void InstallVC2010(void);
+        void InstallUrealRedist(void);
 		void SetLock(bool bLockState);
 		void SetSettingState(bool bState, QString settingName);
         bool GetSettingState(QString settingName);

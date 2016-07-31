@@ -10,6 +10,10 @@
 #define FTP_USER                    "anonymous"
 #define FTP_UPDATE_ROOT             "/"
 
+/*--- Game info ---*/
+#define UNREAL_EXECUTABLE           "YourGame.exe"
+#define UNREAL_GAME_NAME            "Your Game"
+
 /*--- Content of about dialog ---
  *text* will be a title
  !text! will be italic
