@@ -19,6 +19,10 @@ Downloader::Downloader()
 Downloader::~Downloader()
 {
 	delete ftp;
+    delete chrono;
+    delete timeoutTimer;
+    delete speedUpdateTimer;
+    delete downloadUpdateTimer;
 }
 
 
@@ -47,32 +51,32 @@ void Downloader::Connect()
     // FTP setup
     currentSpeed = 0.0;
     currentFtpFile = "";
-    chrono = new QTime();
-    timeout = new QTimer(this);
-    chronoTimeout = new QTimer(this);
     ftp = new QNetworkAccessManager();
-    connect(timeout, SIGNAL(timeout()), this, SLOT(Reconnect()));
-    connect(chronoTimeout, SIGNAL(timeout()), this, SLOT(UpdateSpeed()));
     connect(ftp, SIGNAL(finished(QNetworkReply*)), this, SLOT(FileFinished(QNetworkReply*)));
+
+    // Timers
+    chrono = new QTime();
+    timeoutTimer = new QTimer(this);
+    speedUpdateTimer = new QTimer(this);
+    downloadUpdateTimer = new QTimer(this);
+    connect(timeoutTimer, SIGNAL(timeout()), this, SLOT(Reconnect()));
+    connect(speedUpdateTimer, SIGNAL(timeout()), this, SLOT(UpdateSpeedInfo()));
+    connect(downloadUpdateTimer, SIGNAL(timeout()), this, SLOT(UpdateDownloadInfo()));
 
     // Chrono
     chronoSize = 0;
     chrono->start();
-    chronoTimeout->setSingleShot(true);
-    chronoTimeout->start(FTP_SPEED_UPDATE_TIME);
+    speedUpdateTimer->setSingleShot(true);
+    speedUpdateTimer->start(FTP_SPEED_UPDATE_TIME);
+    downloadUpdateTimer->setSingleShot(true);
+    downloadUpdateTimer->start(FTP_DOWNLOAD_UPDATE_TIME);
 
     // Launch
-#ifdef USE_PASSWORD
+#if USE_PASSWORD
     emit AskForPassword();
 #else
     Login("");
 #endif
-}
-
-/*--- Get the speed ---*/
-float Downloader::GetCurrentSpeed()
-{
-    return currentSpeed;
 }
 
 /*--- Timeout has expired, restart file ---*/
@@ -82,13 +86,13 @@ void Downloader::Reconnect()
 
     // Suppress the FTP handler
     emit Log("Timeout downloading " + currentFtpFile, false);
-    disconnect(timeout, SIGNAL(timeout()), this, SLOT(Reconnect()));
+    disconnect(timeoutTimer, SIGNAL(timeout()), this, SLOT(Reconnect()));
     disconnect(ftp, SIGNAL(finished(QNetworkReply*)), this, SLOT(FileFinished(QNetworkReply*)));
     ftp->deleteLater();
 
     // Restart it
     ftp = new QNetworkAccessManager();
-    connect(timeout, SIGNAL(timeout()), this, SLOT(Reconnect()));
+    connect(timeoutTimer, SIGNAL(timeout()), this, SLOT(Reconnect()));
     connect(ftp, SIGNAL(finished(QNetworkReply*)), this, SLOT(FileFinished(QNetworkReply*)));
     emit DownloadFile(currentFtpDir, currentFtpFile);
 }
@@ -115,6 +119,7 @@ void Downloader::DownloadFile(QString dir, QString file)
 
     // Setup
     downloadedSize = 0;
+    lastDownloadedSize = 0;
     currentFtpDir = dir;
     currentFtpFile = file;
     currentFile = new QFile(currentFtpDir + currentFtpFile);
@@ -140,30 +145,38 @@ void Downloader::DownloadFile(QString dir, QString file)
     connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(FileError(QNetworkReply::NetworkError)));
 
     // Timers
-    timeout->setSingleShot(true);
-    timeout->start(FTP_TIMEOUT);
+    timeoutTimer->setSingleShot(true);
+    timeoutTimer->start(FTP_TIMEOUT);
 }
 
 /*--- Received on FTP part downloaded ---*/
 void Downloader::FilePart(void)
 {
     int count = currentFile->write(reply->readAll());
-    timeout->stop();
-    timeout->setSingleShot(true);
-    timeout->start(FTP_TIMEOUT);
+    timeoutTimer->stop();
+    timeoutTimer->setSingleShot(true);
+    timeoutTimer->start(FTP_TIMEOUT);
     downloadedSize += count;
     chronoSize += count;
-
-    emit BytesDownloaded(count);
-    emit SetCurrentFile(currentFile->fileName());
 }
 
 /*--- Update current speed ---*/
-void Downloader::UpdateSpeed(void)
+void Downloader::UpdateSpeedInfo(void)
 {
-    chronoTimeout->start(FTP_SPEED_UPDATE_TIME);
     currentSpeed = ((float)chronoSize / 1024.0) / ((float)chrono->restart() / 1000.0);
     chronoSize = 0;
+
+    speedUpdateTimer->start(FTP_SPEED_UPDATE_TIME);
+}
+
+/*--- Update data about the current download ---*/
+void Downloader::UpdateDownloadInfo(void)
+{
+    int sizeDelta = downloadedSize - lastDownloadedSize;
+    emit BytesDownloaded(sizeDelta, currentSpeed);
+    lastDownloadedSize = downloadedSize;
+
+    downloadUpdateTimer->start(FTP_DOWNLOAD_UPDATE_TIME);
 }
 
 /*--- Received when a command has failed ---*/
@@ -186,20 +199,20 @@ void Downloader::FileError(QNetworkReply::NetworkError code)
 
         case QNetworkReply::AuthenticationRequiredError:
             qDebug() << "Downloader::FileError : authentication error " + QString::number(code);
-#ifdef USE_PASSWORD
+#if USE_PASSWORD
             Log("Invalid password", true);
 #else
             Log("Password is required", true);
 #endif
             Log("This IP address will be temporary banned after too many invalid passwords", true);
-            timeout->stop();
-            chronoTimeout->stop();
-#ifdef USE_PASSWORD
+            timeoutTimer->stop();
+            speedUpdateTimer->stop();
+#if USE_PASSWORD
             disconnect(timeout, SIGNAL(timeout()), this, SLOT(Reconnect()));
             disconnect(ftp, SIGNAL(finished(QNetworkReply*)), this, SLOT(FileFinished(QNetworkReply*)));
             ftp->deleteLater();
             timeout->deleteLater();
-            chronoTimeout->deleteLater();
+            speedUpdateTimer->deleteLater();
             emit Connect();
 #endif
             break;
@@ -229,14 +242,15 @@ void Downloader::FileFinished(QNetworkReply* mreply)
     disconnect(reply, SIGNAL(readyRead()), this, SLOT(FilePart()));
     disconnect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(FileError(QNetworkReply::NetworkError)));
     mreply->deleteLater();
+    lastDownloadedSize = 0;
+    downloadedSize = 0;
 
     if (bDownloading)
 	{
         bDownloading = false;
-		timeout->stop();
+        timeoutTimer->stop();
 		currentFile->close();
-		delete currentFile;
-        emit SetCurrentFile("");
+        delete currentFile;
 
 		if (currentFtpFile == FTP_RELEASE_NOTES_FILE)
 		{

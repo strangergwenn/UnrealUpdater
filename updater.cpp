@@ -20,8 +20,7 @@ Updater::Updater(QWidget *parent) :
     ui(new Ui::Updater)
 {
     // Configuration
-	bAbortUpdate = false;
-    bDownloadPart = false;
+    bAbortUpdate = false;
     SetSettingState(true, S_DVL_INSTALLED);
 
 	// UI settings
@@ -34,6 +33,7 @@ Updater::Updater(QWidget *parent) :
     downloadedBytes = 0;
     dlThread = new QThread;
     dlObject = new Downloader();
+    aboutDialog = new About(this);
     dlObject->moveToThread(dlThread);
 
     // Signals - From UI
@@ -43,7 +43,7 @@ Updater::Updater(QWidget *parent) :
     // Signals - From downloader
     connect(dlObject, SIGNAL(Stage1()), this, SLOT(Stage1()));
     connect(dlObject, SIGNAL(Stage2()), this, SLOT(Stage2()));
-    connect(dlObject, SIGNAL(BytesDownloaded(int)), this, SLOT(BytesDownloaded(int)));
+    connect(dlObject, SIGNAL(BytesDownloaded(int, float)), this, SLOT(BytesDownloaded(int, float)));
     connect(dlObject, SIGNAL(FileDownloaded()), this, SLOT(FileDownloaded()));
     connect(dlObject, SIGNAL(Log(QString, bool)), this, SLOT(Log(QString, bool)));
 
@@ -59,8 +59,11 @@ Updater::Updater(QWidget *parent) :
 
 Updater::~Updater()
 {
+    SetLock(false);
+
 	delete ui;
-	SetLock(false);
+    delete dlThread;
+    delete aboutDialog;
 }
 
 
@@ -130,7 +133,6 @@ void Updater::Stage3(void)
 
     // XML is ready
     delete dom;
-    remainingFiles = filesToDownload.size();
     ui->downloadProgress->setRange(0, downloadSize);
     SetUserMessage("Downloading");
 
@@ -143,7 +145,7 @@ void Updater::Stage3(void)
     }
 
     // File tree is OK
-    else if (filesToDownload.size() == 0)
+    else
     {
         ui->downloadProgress->setRange(0, 100);
         ui->downloadProgress->setValue(100);
@@ -163,7 +165,6 @@ void Updater::FileDownloaded(void)
     // Download in progress
     if (filesToDownload.size() > 0)
     {
-        remainingFiles--;
         currentFd = filesToDownload.takeFirst();
         emit DownloadFile(currentFd.dir, currentFd.file);
     }
@@ -171,8 +172,9 @@ void Updater::FileDownloaded(void)
     // Download complete : check for corruptions and run
     else
     {
-        emit Log("Download complete", false);
         filesToDownload.clear();
+        ui->downloadProgress->setRange(0, 100);
+        ui->downloadProgress->setValue(100);
         emit Stage2();
     }
 }
@@ -191,7 +193,7 @@ void Updater::Log(QString message, bool bIsHeavy)
     }
     else
     {
-#ifndef USE_FILE_LOG
+#if !USE_FILE_LOG
         return;
 #endif
     }
@@ -210,39 +212,53 @@ void Updater::SetUserMessage(QString message)
 	ui->userInformation->setText(userInfo);
 }
 
-/*--- Received on FTP part received ---*/
-void Updater::BytesDownloaded(int number)
+/*--- Received when the downloader updates the download status ---*/
+void Updater::BytesDownloaded(int deltaBytes, float downloadSpeed)
 {
-    QString message;
-
-    downloadedBytes += number;
-    bDownloadPart = !bDownloadPart;
-    ui->downloadProgress->setValue(downloadedBytes);
-
-    message = "Downloading " + QString::number(remainingFiles);
-    message += (remainingFiles > 1) ? " files " : "file ";
-    if (downloadSize - downloadedBytes > 1024*1024)
+    if (deltaBytes != 0)
     {
-        message += "(" + QString::number((downloadSize - downloadedBytes) / (1024*1024)) + " MB) ";
-    }
-    message += "at " + QString::number((int)(dlObject->GetCurrentSpeed())) + " KB/s";
+        downloadedBytes += deltaBytes;
+        ui->downloadProgress->setValue(downloadedBytes);
+        int remainingFiles = filesToDownload.size() + 1;
 
-    SetUserMessage(message);
+        QString message;
+        message = "Downloading " + QString::number(remainingFiles);
+        message += (remainingFiles > 1) ? " files " : " file ";
+
+        if (downloadSize - downloadedBytes > 1024*1024)
+        {
+            message += "(" + QString::number((downloadSize - downloadedBytes) / (1024*1024)) + " MB) ";
+        }
+        else
+        {
+            message += "(" + QString::number((downloadSize - downloadedBytes) / (1024)) + " KB) ";
+        }
+
+        if (downloadSpeed > 1024)
+        {
+            message += "at " + QString::number(downloadSpeed / 1024.0f, 10, 2) + " MB/s";
+        }
+        else
+        {
+            message += "at " + QString::number(downloadSpeed, 10, 2) + " KB/s";
+        }
+
+        SetUserMessage(message);
+    }
 }
 
 /*--- Launch Unreal, exit updater ---*/
 void Updater::LaunchGame(void)
 {
-    QProcess udk(this);
-    udk.startDetached(UNREAL_EXECUTABLE);
-    udk.waitForStarted();
+    QProcess unreal(this);
+    unreal.startDetached(UNREAL_EXECUTABLE);
+    unreal.waitForStarted();
     QApplication::quit();
 }
 
 /*--- Print the about dialog ---*/
 void Updater::AboutMe(void)
 {
-    About* aboutDialog = new About(this);
 	aboutDialog->show();
 }
 

@@ -32,8 +32,7 @@ class Downloader : public QObject
 
 public:
 	Downloader();
-	~Downloader();
-    float GetCurrentSpeed();
+    ~Downloader();
 
 public slots:
     void Connect(void);
@@ -41,7 +40,8 @@ public slots:
     void Login(QString pwd);
     void DownloadFile(QString dir, QString file);
     void FilePart(void);
-    void UpdateSpeed(void);
+    void UpdateDownloadInfo(void);
+    void UpdateSpeedInfo(void);
     void FileError(QNetworkReply::NetworkError code);
     void FileFinished(QNetworkReply* mreply);
 
@@ -49,22 +49,23 @@ signals:
     void AskForPassword(void);
     void Stage1(void);
     void Stage2(void);
-    void BytesDownloaded(int);
+    void BytesDownloaded(int, float);
     void FileDownloaded(void);
-    void SetCurrentFile(QString fileName);
     void Log(QString message, bool bIsHeavy);
 
 private:
     float   currentSpeed;
     bool    bDownloading;
     int     downloadedSize;
+    int     lastDownloadedSize;
     int     chronoSize;
     QString passWd;
     QUrl*   baseUrl;
 	QFile*  currentFile;
     QTime*  chrono;
-    QTimer* timeout;
-    QTimer* chronoTimeout;
+    QTimer* timeoutTimer;
+    QTimer* speedUpdateTimer;
+    QTimer* downloadUpdateTimer;
 	QString currentFtpDir;
 	QString currentFtpFile;
     QNetworkReply* reply;

@@ -55,7 +55,7 @@ class Updater : public QMainWindow
         void Stage1(void);
         void Stage2(void);
         void Stage3(void);
-        void BytesDownloaded(int number);
+        void BytesDownloaded(int deltaBytes, float downloadSpeed);
         void FileDownloaded(void);
         void AskForPassword(void);
 
@@ -79,11 +79,9 @@ class Updater : public QMainWindow
         bool GetSettingState(QString settingName);
 
         bool        	bAbortUpdate;
-        bool            bDownloadPart;
 
         int             downloadedBytes;
         int             downloadSize;
-        int             remainingFiles;
 
 		QDate           currentDate;
 		QDate           nextDate;
@@ -98,6 +96,7 @@ class Updater : public QMainWindow
         Downloader*     dlObject;
         QThread*		dlThread;
 		Ui::Updater     *ui;
+        About*          aboutDialog;
 };
 
 extern QString TextToHtml(QString data);

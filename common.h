@@ -29,9 +29,13 @@
 
 #define ABOUT_TITLE                 "About"
 
+#define USE_FILE_LOG                1
+#define USE_PASSWORD                0
+
 #define FTP_TIMEOUT                 (5000)
-#define FTP_SPEED_UPDATE_TIME       (2000)
-#define FTP_PART_SIZE               (64 * 1024)
+#define FTP_SPEED_UPDATE_TIME       (1000)
+#define FTP_DOWNLOAD_UPDATE_TIME    (100)
+#define FTP_PART_SIZE               (256 * 1024)
 #define FTP_MANIFEST_ROOT           ""
 #define FTP_MANIFEST_FILE           "GameManifest.xml"
 #define FTP_RELEASE_NOTES_FILE      "ReleaseNotes.xml"
