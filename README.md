@@ -1,12 +1,12 @@
 UnrealUpdater
 =============
 
-A C++ updater for UDK games, built with Qt4.
+A C++ updater for UE4 games, built with Qt5.
 
 Overview
 --------
 
-UUpdater is a lightweight updater software, built with Qt5, to deploy your Unreal Engine game simply over anonymous FTP.  
+Unreal Updater is a lightweight updater software, built with Qt5, to deploy your Unreal Engine game simply over anonymous FTP.  
 It was developped for the free FPS [DeepVoid](http://deepvoid.eu/ "DeepVoid") and the space sim [Helium Rain](http://helium-rain.com), and is now available for everyone to use. When launched on client, it will download the game, check its consistency and install the UE4 redistributables before running the game.
 
 Right now, no major deployment has been made and the tool is still in development, use at your own risks.  
@@ -47,14 +47,13 @@ You can edit the file by hand.
 		<Notes>*Title*
 	
 		Text, text, text.</Notes>
-		<NotUpdatedFile>UDKGame/Config/i-will-not-be-erased.ini</NotUpdatedFile>
 	</ReleaseNotes>
 
 
 GameManifest.xml syntax
 --------
 
-You should probably use a tool for this. The syntax is very easy, but you will probably have a lot of files here.
+You should probably use a tool for this. The syntax is very easy, but you will probably have a lot of files here. You can use my other tool, [Unreal Manifest](https://github.com/arbonagw/UnrealManifest) for this.
 
 	<FolderProperties FolderName=".">
 		<Folders>
@@ -73,4 +72,4 @@ You should probably use a tool for this. The syntax is very easy, but you will p
 Contact, people, etc
 --------
 
-UnrealUpdater is developped by Gwennaël ARBONA.  
+Unreal Updater is developped by Gwennaël ARBONA.  
