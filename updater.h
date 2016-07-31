@@ -27,7 +27,6 @@
 
 #include "common.h"
 #include "about.h"
-#include "serverconfig.h"
 #include "downloader.h"
 
 
@@ -64,7 +63,6 @@ class Updater : public QMainWindow
         void SetUserMessage(QString message);
 
         void LaunchGame(void);
-        void LaunchServer(void);
         void AboutMe(void);
 
     signals:

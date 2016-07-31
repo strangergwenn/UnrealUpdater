@@ -18,7 +18,10 @@
 #define ABOUT_CONTENT \
 "*Unreal Updater is brought to you by...*\n \
 \n \
-_ARBONA Gwenna&euml;l_ - gwennael.arbona@gmail.com\n \
+_ARBONA Gwenna&euml;l_ - Developer\n \
+\n \
+This game updater is open-source software under the GPLv3 license.\n \
+You can find the sources on GitHub : https://github.com/arbonagw/UnrealUpdater\n \
 \n \
 !Feel free to edit this...!"
 

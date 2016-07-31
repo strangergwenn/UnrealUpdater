@@ -17,8 +17,7 @@ SOURCES += main.cpp\
     about.cpp \
     downloader.cpp \
     updater.cpp \
-    password.cpp \
-    serverconfig.cpp
+    password.cpp
 
 HEADERS  += \
     about.h \
@@ -26,8 +25,7 @@ HEADERS  += \
     downloader.h \
     updater.h \
     Res/project.h \
-    password.h \
-    serverconfig.h
+    password.h
 
 FORMS    += \
     about.ui \

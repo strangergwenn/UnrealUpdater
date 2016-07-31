@@ -39,10 +39,8 @@ Updater::Updater(QWidget *parent) :
     // Signals - From UI
     connect(ui->about, SIGNAL(clicked()), this, SLOT(AboutMe()));
     connect(ui->launchGame, SIGNAL(clicked()), this, SLOT(LaunchGame()));
-    connect(ui->launchServer, SIGNAL(clicked()), this, SLOT(LaunchServer()));
 
     // Signals - From downloader
-    connect(dlObject, SIGNAL(AskForPassword()), this, SLOT(AskForPassword()));
     connect(dlObject, SIGNAL(Stage1()), this, SLOT(Stage1()));
     connect(dlObject, SIGNAL(Stage2()), this, SLOT(Stage2()));
     connect(dlObject, SIGNAL(BytesDownloaded(int)), this, SLOT(BytesDownloaded(int)));
@@ -150,7 +148,6 @@ void Updater::Stage3(void)
         SetUserMessage("Ready to play !");
 
         ui->launchGame->setEnabled(true);
-        ui->launchServer->setEnabled(true);
     }
 }
 
@@ -235,15 +232,6 @@ void Updater::LaunchGame(void)
     QProcess udk(this);
     udk.startDetached(UDK_EXE_PATH_32);
     udk.waitForStarted();
-    QApplication::quit();
-}
-
-/*--- Launch UDK server, exit updater ---*/
-void Updater::LaunchServer(void)
-{
-    ServerConfig w;
-    hide();
-    w.exec();
     QApplication::quit();
 }
 
