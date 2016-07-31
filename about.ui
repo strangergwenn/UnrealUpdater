@@ -21,8 +21,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
-     <height>570</height>
+     <width>470</width>
+     <height>330</height>
     </rect>
    </property>
    <property name="palette">
@@ -208,6 +208,7 @@
    <property name="font">
     <font>
      <pointsize>10</pointsize>
+     <stylestrategy>PreferAntialias</stylestrategy>
     </font>
    </property>
    <property name="frameShape">
