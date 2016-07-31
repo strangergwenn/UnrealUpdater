@@ -6,42 +6,40 @@ A C++ updater for UDK games, built with Qt4.
 Overview
 --------
 
-UUpdater is a lightweight updater software built with Qt4, usable to deploy your UDK game simply over FTP, without additionnal work.  
-It was developped for the free FPS [DeepVoid](http://deepvoid.eu/ "DeepVoid"), and is now available for everyone to use. Right now, no major deployment has been made and the tool is still in development, use at your own risks.  
-  
-When launched on client, it will trigger .NET 4 installation if not detected, since this is needed by UDK and packed in the standard installer.
+UUpdater is a lightweight updater software, built with Qt5, to deploy your Unreal Engine game simply over anonymous FTP.  
+It was developped for the free FPS [DeepVoid](http://deepvoid.eu/ "DeepVoid") and the space sim [Helium Rain](http://helium-rain.com), and is now available for everyone to use. When launched on client, it will download the game, check its consistency and install the UE4 redistributables before running the game.
 
+Right now, no major deployment has been made and the tool is still in development, use at your own risks.  
 
 User-side configuration files
 --------
 
 There are currently a few configuration files in the *Config/* folder, created on startup.
 
-1.  *UU_Lock.setting* is generated, do not use.
-2.  *UU_AutoLaunch.setting*, if existing, will trigger auto-launch of the game after updating. Delete it to abort this.
-3.  *UU_Dedicated.setting*, if existing, will make the game launch on server mode using the configured map.
-4.  *UU_Map.setting* contains the map name to launch on server mode, but you can very well add various parameters here for the UDK command line.
+1.  *UU_Lock.setting* is generated on start and removed on exit to prevent multiple instances. Remove it if the launcher doesn't start.
+2.  *UU_Accepted.setting* is generated when the user accepts to install the game.
+3.  *UU_Installed.setting* is generated when the redistributables have been installed.
 
 
 How to use
 --------
 
-Currently, the updater use a frehs installation of your game. This means that the first condition is that you build, cook and package your game with UnrealFrontend, then install (using the packaged installer) it in a new separated folder.  
-This process will generate a file tree that you can use here. Do not use this process on a UDK development folder.
+The updater use a fresh installation of your game - you need to have a full deployed package of your game. The process will generate a file tree that you can use with this tool. 
 
-1.  First, edit the image resources in the *Res/* folder to match your game's UI. Use the sample *Res_Sample/* folder and rename it.
-2.  Edit *res/project.h* to set your about dialog and FTP data.
-3.  Use QTCreator to build the game. You **should** use a static build of Qt so that the updater is a single file.
-4.  Edit ReleaseNotes.xml on your server to update the description on the updater main window.
-5.  Edit Binaries/InstallData/GameManifest.xml to add a "md5" field on each "FileProperties" node with the MD5 checksum of the file.
-6.  You should really check that all of this works locally.
-7.  Your updater is ready, feel free to rename it and distribute it.
+1.  Rename the *Res_Sample/* into *Res/* and edit the images to match your project's look.
+2.  Edit *Res/project.h* to set your FTP data, game name, etc.
+3.  Use QTCreator to build the updater. You **should** use a static build of Qt so that the updater is a single file.
+4.  Create a ReleaseNotes.xml on your server to update the description on the updater main window. See below.
+5.  Create a GameManifest.xml on your server to tell the updater about the files you want. See below.
+6.  Your updater is ready, feel free to rename it and distribute it.
 
-**Beware : this is GPL'd software. You have to provide the sources (or a link to them on GitHub).**
+**Beware : this is GPL software. You have to provide the sources, or link them on GitHub if you didn't change anything.**
 
 
 ReleaseNotes.xml syntax
 --------
+
+You can edit the file by hand.
 
 	<ReleaseNotes>
 		<Version>MajorRelease42</Version>
@@ -55,6 +53,8 @@ ReleaseNotes.xml syntax
 
 GameManifest.xml syntax
 --------
+
+You should probably use a tool for this. The syntax is very easy, but you will probably have a lot of files here.
 
 	<FolderProperties FolderName=".">
 		<Folders>
@@ -74,4 +74,3 @@ Contact, people, etc
 --------
 
 UnrealUpdater is developped by Gwennaël ARBONA.  
-In case of bugs, questions, requests, ideas, please use the message system on GitHub.
