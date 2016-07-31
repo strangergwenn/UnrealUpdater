@@ -5,7 +5,9 @@
 #-------------------------------------------------
 
 QT       += core gui
+QT       += widgets
 QT       += network
+QT       += concurrent
 QT       += xml
 
 TARGET = UnrealUpdater
@@ -15,7 +17,6 @@ SOURCES += main.cpp\
     about.cpp \
     downloader.cpp \
     updater.cpp \
-    windows-specific.cpp \
     password.cpp \
     serverconfig.cpp
 
@@ -25,7 +26,6 @@ HEADERS  += \
     downloader.h \
     updater.h \
     Res/project.h \
-    windows-specific.h \
     password.h \
     serverconfig.h
 

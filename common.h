@@ -21,7 +21,6 @@
 #include <QDir>
 
 #include "Res/project.h"
-#include "windows-specific.h"
 
 
 /*----------------------------------------------
@@ -52,8 +51,6 @@
 #define S_DVL_INSTALLED             "Config/UU_Accepted.setting"
 #define S_UE_INSTALLED              "Config/UU_Installed.setting"
 #define S_SERVER_SETTINGS           "Config/UU_Server.setting"
-
-#define USE_AERO_EFFECTS
 
 
 /*----------------------------------------------

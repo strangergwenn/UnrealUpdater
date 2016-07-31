@@ -13,7 +13,8 @@
 ----------------------------------------------*/
 
 #include <QCryptographicHash>
-#include <QtConcurrentRun>
+#include <QtConcurrent/QtConcurrent>
+#include <QtConcurrent/QtConcurrentRun>
 #include <QFutureWatcher>
 #include <QDomDocument>
 #include <QTextStream>

@@ -19,11 +19,7 @@ About::About(QWidget *parent) :
 	ui->setupUi(this);
 	ui->aboutText->setHtml(TextToHtml(ABOUT_CONTENT));
 	setWindowTitle(ABOUT_TITLE);
-	connect(ui->exitButton, SIGNAL(clicked()), this, SLOT(close()));
-
-	#ifdef USE_AERO_EFFECTS
-		SetupAeroEffects(this);
-	#endif
+    connect(ui->exitButton, SIGNAL(clicked()), this, SLOT(close()));
 }
 
 About::~About()

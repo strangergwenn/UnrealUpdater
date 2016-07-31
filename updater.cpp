@@ -27,10 +27,7 @@ Updater::Updater(QWidget *parent) :
 	// UI settings
     SetLock(true);
     ui->setupUi(this);
-	setWindowTitle(WINDOW_TITLE);
-	#ifdef USE_AERO_EFFECTS
-		SetupAeroEffects(this);
-	#endif
+    setWindowTitle(WINDOW_TITLE);
 
     // Downloader settings
 	downloadSize = 0;
