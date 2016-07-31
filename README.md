@@ -1,4 +1,4 @@
-UnrealUpdater
+Unreal Updater
 =============
 
 A C++ updater for UE4 games, built with Qt5.
