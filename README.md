@@ -1,7 +1,7 @@
 Unreal Updater
 =============
 
-A C++ updater for UE4 games, built with Qt5.
+A C++ updater for UE4 games, built with Qt5, licensed under LGPL.
 
 ![Screenshot](https://raw.githubusercontent.com/arbonagw/UnrealUpdater/master/Launcher.jpg)
 
@@ -34,8 +34,6 @@ The updater use a fresh installation of your game - you need to have a full depl
 4.  Create a ReleaseNotes.xml on your server to update the description on the updater main window. See below.
 5.  Create a GameManifest.xml on your server to tell the updater about the files you want. See below.
 6.  Your updater is ready, feel free to rename it and distribute it.
-
-**Beware : this is GPL software. You have to provide the sources, or link them on GitHub if you didn't change anything.**
 
 
 ReleaseNotes.xml syntax
