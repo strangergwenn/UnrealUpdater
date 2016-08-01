@@ -149,7 +149,7 @@ void Updater::Stage3(void)
         ui->downloadProgress->setRange(0, 100);
         ui->downloadProgress->setValue(100);
 
-        if (!GetSettingState(UU_GAME_INSTALLED))
+        if (!GetSettingState(UU_GAME_INSTALLED) && QString(GAME_INSTALLER_EXECUTABLE).length())
         {
             SetUserMessage("Installing game");
 
