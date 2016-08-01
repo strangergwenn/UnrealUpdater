@@ -13,10 +13,9 @@ It was developped for the free FPS [DeepVoid](http://deepvoid.eu/ "DeepVoid") an
 
 Features :
 
- - game download and updating
- - consistency checking
+ - game download, verification, and updating
  - installation of dependencies
- - download from anonymous FTP, with support for anonyous password
+ - download through FTP with anonymous or password-protected user
 
 User-side configuration files
 --------
