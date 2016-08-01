@@ -20,16 +20,16 @@ int main(int argc, char *argv[])
 {
     // Config directory
     QDir tempDir(".");
-    tempDir.mkpath(S_CONFIG_DIR);
+    tempDir.mkpath(UU_CONFIG_DIR);
     QString path = QDir::currentPath();
 
     // Standard launch
-    if (!Updater::GetLock())
+    if (!QFile::exists(UU_LOCK_FILE))
     {
         QApplication a(argc, argv);
 
         // First launch
-        if (!QFile::exists(S_DVL_INSTALLED))
+        if (!QFile::exists(UU_UPDATER_INSTALLED))
         {
             QMessageBox msgBox;
             msgBox.setText("The game will be installed in " + path + "/.\n"

@@ -19,16 +19,16 @@ Updater::Updater(QWidget *parent) :
     filesToDownload(QList<File_t> ()),
     ui(new Ui::Updater)
 {
-    // Configuration
-    bAbortUpdate = false;
-    SetSettingState(true, S_DVL_INSTALLED);
+    // Store setttings
+    SetSettingState(UU_UPDATER_INSTALLED, true);
+    SetSettingState(UU_LOCK_FILE, true);
 
-	// UI settings
-    SetLock(true);
+    // Setup UI
     ui->setupUi(this);
     setWindowTitle(WINDOW_TITLE);
 
     // Downloader settings
+    bAbortUpdate = false;
 	downloadSize = 0;
     downloadedBytes = 0;
     dlThread = new QThread;
@@ -59,7 +59,7 @@ Updater::Updater(QWidget *parent) :
 
 Updater::~Updater()
 {
-    SetLock(false);
+    SetSettingState(UU_LOCK_FILE, false);
 
 	delete ui;
     delete dlThread;
@@ -150,7 +150,7 @@ void Updater::Stage3(void)
         ui->downloadProgress->setRange(0, 100);
         ui->downloadProgress->setValue(100);
 
-        InstallUrealRedist();
+        InstallGame();
         SetUserMessage("Ready to play !");
 
         ui->launchGame->setEnabled(true);
@@ -247,12 +247,12 @@ void Updater::BytesDownloaded(int deltaBytes, float downloadSpeed)
     }
 }
 
-/*--- Launch Unreal, exit updater ---*/
+/*--- Launch game, exit updater ---*/
 void Updater::LaunchGame(void)
 {
-    QProcess unreal(this);
-    unreal.startDetached(UNREAL_EXECUTABLE);
-    unreal.waitForStarted();
+    QProcess gameProcess(this);
+    gameProcess.startDetached(GAME_EXECUTABLE);
+    gameProcess.waitForStarted();
     QApplication::quit();
 }
 
@@ -422,14 +422,8 @@ QString Updater::HashFile(QFile* file)
 	return hashed.toHex().data();
 }
 
-/*--- Write the lock file ---*/
-void Updater::SetLock(bool bLockState)
-{
-	SetSettingState(bLockState, S_LOCK_FILE);
-}
-
 /*--- Generic, basic setting API : setter ---*/
-void Updater::SetSettingState(bool bState, QString settingName)
+void Updater::SetSettingState(QString settingName, bool bState)
 {
 	if (bState)
 	{
@@ -450,15 +444,15 @@ bool Updater::GetSettingState(QString settingName)
 }
 
 /*--- Check if the UE4 redistributables have been installed ---*/
-void Updater::InstallUrealRedist(void)
+void Updater::InstallGame(void)
 {
     QProcess ueInstaller(this);
 
-    if (!GetSettingState(S_UE_INSTALLED))
+    if (!GetSettingState(UU_GAME_INSTALLED))
     {
-        SetUserMessage("Installing UE4 redistributables");
-        ueInstaller.startDetached(UE_INSTALLER_PATH);
+        SetUserMessage("Installing game");
+        ueInstaller.startDetached(GAME_INSTALLER_EXECUTABLE);
         ueInstaller.waitForFinished();
-        SetSettingState(true, S_UE_INSTALLED);
+        SetSettingState(UU_GAME_INSTALLED, true);
     }
 }

@@ -5,14 +5,66 @@
  *  @author Gwennaël ARBONA
  **/
 
-/*--- FTP server data for connexion ---*/
+
+/*----------------------------------------------
+         General settings
+---------------------------------------------*/
+
+// Title for the main window
+#define WINDOW_TITLE                "Unreal Updater"
+
+// Title for the "About" window
+#define ABOUT_TITLE                 "About"
+
+// Show files in the main window when they're downloaded
+#define USE_FILE_LOG                1
+
+// Ask the user for the FTP password before connecting
+#define USE_PASSWORD                0
+
+
+/*----------------------------------------------
+         Path settings
+---------------------------------------------*/
+
+// Installer executable
+#define GAME_INSTALLER_EXECUTABLE   "Engine/Extras/Redist/en-us/UE4PrereqSetup_x64.exe"
+
+// Game executable
+#define GAME_EXECUTABLE             "Game.exe"
+
+// Config files used by Unreal Updater
+#define UU_CONFIG_DIR               "Config"
+#define UU_LOCK_FILE                "Config/UU_Lock.setting"
+#define UU_UPDATER_INSTALLED        "Config/UU_Accepted.setting"
+#define UU_GAME_INSTALLED           "Config/UU_Installed.setting"
+
+
+/*----------------------------------------------
+         FTP settings
+---------------------------------------------*/
+
+// FTP server data for connexion
 #define FTP_SERVER                  "yoursite.com"
 #define FTP_USER                    "anonymous"
 #define FTP_UPDATE_ROOT             "/"
 
-/*--- Game info ---*/
-#define UNREAL_EXECUTABLE           "YourGame.exe"
-#define UNREAL_GAME_NAME            "Your Game"
+// FTP performance parameters
+#define FTP_TIMEOUT                 (5000)
+#define FTP_SPEED_UPDATE_TIME       (1000)
+#define FTP_DOWNLOAD_UPDATE_TIME    (100)
+#define FTP_PART_SIZE               (256 * 1024)
+
+// Manifest files
+#define FTP_MANIFEST_ROOT           ""
+#define FTP_MANIFEST_FILE           "GameManifest.xml"
+#define FTP_RELEASE_NOTES_FILE      "ReleaseNotes.xml"
+#define FTP_OLD_RELEASE_NOTES_FILE  "ReleaseNotes.old"
+
+
+/*----------------------------------------------
+        Customization
+---------------------------------------------*/
 
 /*--- Content of about dialog ---
  *text* will be a title
@@ -20,20 +72,17 @@
  _text_ will be bold
 */
 #define ABOUT_CONTENT \
-"*Unreal Updater is brought to you by...*\n \
+"*About Unreal Updater*\n \
 \n \
-_ARBONA Gwenna&euml;l_ - Developer\n \
+This game updater is open-source software under the LGPL license.\n \
+ You can find the sources on GitHub : https://github.com/arbonagw/UnrealUpdater\n \
 \n \
-This game updater is open-source software under the GPLv3 license.\n \
-You can find the sources on GitHub : https://github.com/arbonagw/UnrealUpdater\n \
-\n \
-!Feel free to edit this...!"
+_Gwenna&euml;l ARBONA_"
 
 /*--- Colors and fonts for all the interface ---*/
-#define WINDOW_TITLE                "Unreal Updater"
-#define HTML_TITLE_S                "<b><font size=\"4\" color=\"OrangeRed\">"
+#define HTML_TITLE_S                "<b><font size=\"3\" color=\"lightskyblue\">"
 #define HTML_TITLE_E                "</font></b>"
-#define HTML_HEAVY_S                "<b><font color=\"OrangeRed\">"
+#define HTML_HEAVY_S                "<b><font color=\"lightskyblue\">"
 #define HTML_HEAVY_E                "</font></b>"
 #define HTML_MEDIUM_S               "<b>"
 #define HTML_MEDIUM_E               "</b>"

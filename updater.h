@@ -46,11 +46,6 @@ class Updater : public QMainWindow
 		explicit Updater(QWidget *parent = 0);
 		~Updater();
 
-		static bool GetLock(void)
-		{
-			return QFile::exists(S_LOCK_FILE);
-		}
-
 	public slots:
         void Stage1(void);
         void Stage2(void);
@@ -73,9 +68,8 @@ class Updater : public QMainWindow
         void ParseManifest(QDomNode node, QString dirName);
 
         QString HashFile(QFile* file);
-        void InstallUrealRedist(void);
-		void SetLock(bool bLockState);
-		void SetSettingState(bool bState, QString settingName);
+        void InstallGame(void);
+        void SetSettingState(QString settingName, bool bState);
         bool GetSettingState(QString settingName);
 
         bool        	bAbortUpdate;
