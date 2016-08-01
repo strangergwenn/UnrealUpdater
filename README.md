@@ -1,7 +1,7 @@
 Unreal Updater
 =============
 
-A C++ updater for UE4 games, built with Qt5, licensed under LGPL.
+A C++ updater for UE4 games, built with Qt5, licensed under LGPL. Other game engines might work too.
 
 ![Screenshot](https://raw.githubusercontent.com/arbonagw/UnrealUpdater/master/Launcher.jpg)
 
@@ -9,9 +9,14 @@ Overview
 --------
 
 Unreal Updater is a lightweight updater software, built with Qt5, to deploy your Unreal Engine game simply over anonymous FTP.  
-It was developped for the free FPS [DeepVoid](http://deepvoid.eu/ "DeepVoid") and the space sim [Helium Rain](http://helium-rain.com), and is now available for everyone to use. When launched on client, it will download the game, check its consistency and install the UE4 redistributables before running the game.
+It was developped for the free FPS [DeepVoid](http://deepvoid.eu/ "DeepVoid") and the space sim [Helium Rain](http://helium-rain.com), and is now available for everyone to use. 
 
-Right now, no major deployment has been made and the tool is still in development, use at your own risks.  
+Features :
+
+ - game download and updating
+ - consistency checking
+ - installation of dependencies
+ - download from anonymous FTP, with support for anonyous password
 
 User-side configuration files
 --------
@@ -20,7 +25,7 @@ There are currently a few configuration files in the *Config/* folder, created o
 
 1.  *UU_Lock.setting* is generated on start and removed on exit to prevent multiple instances. Remove it if the launcher doesn't start.
 2.  *UU_Accepted.setting* is generated when the user accepts to install the game.
-3.  *UU_Installed.setting* is generated when the redistributables have been installed.
+3.  *UU_Installed.setting* is generated when the game's dependencies have been installed.
 
 
 How to use
@@ -29,7 +34,7 @@ How to use
 The updater use a fresh installation of your game - you need to have a full deployed package of your game. The process will generate a file tree that you can use with this tool. 
 
 1.  Rename the *Res_Sample/* into *Res/* and edit the images to match your project's look.
-2.  Edit *Res/project.h* to set your FTP data, game name, etc.
+2.  Edit *Res/project.h* to set your game name, FTP address, executable path...
 3.  Use QTCreator to build the updater. You **should** use a static build of Qt so that the updater is a single file, [see this guide](http://stackoverflow.com/questions/14932315/how-to-compile-qt-5-under-windows-or-linux-32-or-64-bit-static-or-dynamic-on-v) to see how.
 4.  Create a ReleaseNotes.xml on your server to update the description on the updater main window. See below.
 5.  Create a GameManifest.xml on your server to tell the updater about the files you want. See below.
