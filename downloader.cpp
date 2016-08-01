@@ -52,16 +52,16 @@ void Downloader::Connect()
     currentSpeed = 0.0;
     currentFtpFile = "";
     ftp = new QNetworkAccessManager();
-    connect(ftp, SIGNAL(finished(QNetworkReply*)), this, SLOT(FileFinished(QNetworkReply*)));
+    connect(ftp, &QNetworkAccessManager::finished, this, &Downloader::FileFinished);
 
     // Timers
     chrono = new QTime();
-    timeoutTimer = new QTimer(this);
-    speedUpdateTimer = new QTimer(this);
+    timeoutTimer =        new QTimer(this);
+    speedUpdateTimer =    new QTimer(this);
     downloadUpdateTimer = new QTimer(this);
-    connect(timeoutTimer, SIGNAL(timeout()), this, SLOT(Reconnect()));
-    connect(speedUpdateTimer, SIGNAL(timeout()), this, SLOT(UpdateSpeedInfo()));
-    connect(downloadUpdateTimer, SIGNAL(timeout()), this, SLOT(UpdateDownloadInfo()));
+    connect(timeoutTimer,        &QTimer::timeout, this, &Downloader::Reconnect);
+    connect(speedUpdateTimer,    &QTimer::timeout, this, &Downloader::UpdateSpeedInfo);
+    connect(downloadUpdateTimer, &QTimer::timeout, this, &Downloader::UpdateDownloadInfo);
 
     // Chrono
     chronoSize = 0;
@@ -86,14 +86,14 @@ void Downloader::Reconnect()
 
     // Suppress the FTP handler
     emit Log("Timeout downloading " + currentFtpFile, false);
-    disconnect(timeoutTimer, SIGNAL(timeout()), this, SLOT(Reconnect()));
-    disconnect(ftp, SIGNAL(finished(QNetworkReply*)), this, SLOT(FileFinished(QNetworkReply*)));
+    disconnect(timeoutTimer, &QTimer::timeout, this, &Downloader::Reconnect);
+    disconnect(ftp, &QNetworkAccessManager::finished, this, &Downloader::FileFinished);
     ftp->deleteLater();
 
     // Restart it
     ftp = new QNetworkAccessManager();
-    connect(timeoutTimer, SIGNAL(timeout()), this, SLOT(Reconnect()));
-    connect(ftp, SIGNAL(finished(QNetworkReply*)), this, SLOT(FileFinished(QNetworkReply*)));
+    connect(timeoutTimer, &QTimer::timeout, this, &Downloader::Reconnect);
+    connect(ftp, &QNetworkAccessManager::finished, this, &Downloader::FileFinished);
     emit DownloadFile(currentFtpDir, currentFtpFile);
 }
 
@@ -141,8 +141,8 @@ void Downloader::DownloadFile(QString dir, QString file)
     bDownloading = true;
     reply = ftp->get(r);
     reply->setReadBufferSize(FTP_PART_SIZE);
-    connect(reply, SIGNAL(readyRead()), this, SLOT(FilePart()));
-    connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(FileError(QNetworkReply::NetworkError)));
+    connect(reply, &QNetworkReply::readyRead, this, &Downloader::FilePart);
+    connect(reply, static_cast<void (QNetworkReply::*)(QNetworkReply::NetworkError)>(&QNetworkReply::error), this, &Downloader::FileError);
 
     // Timers
     timeoutTimer->setSingleShot(true);
@@ -208,8 +208,8 @@ void Downloader::FileError(QNetworkReply::NetworkError code)
             timeoutTimer->stop();
             speedUpdateTimer->stop();
 #if USE_PASSWORD
-            disconnect(timeout, SIGNAL(timeout()), this, SLOT(Reconnect()));
-            disconnect(ftp, SIGNAL(finished(QNetworkReply*)), this, SLOT(FileFinished(QNetworkReply*)));
+            disconnect(timeout, &QTimer::timeout, this, &Downloader::Reconnect);
+            disconnect(ftp, &QNetworkAccessManager::finished, this, &Downloader::FileFinished);
             ftp->deleteLater();
             timeout->deleteLater();
             speedUpdateTimer->deleteLater();
@@ -239,8 +239,8 @@ void Downloader::FileFinished(QNetworkReply* mreply)
 {
     qDebug() << "Downloader::FileFinished";
 
-    disconnect(reply, SIGNAL(readyRead()), this, SLOT(FilePart()));
-    disconnect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(FileError(QNetworkReply::NetworkError)));
+    disconnect(reply, &QNetworkReply::readyRead, this, &Downloader::FilePart);
+    disconnect(reply, static_cast<void (QNetworkReply::*)(QNetworkReply::NetworkError)>(&QNetworkReply::error), this, &Downloader::FileError);
     mreply->deleteLater();
     lastDownloadedSize = 0;
     downloadedSize = 0;

@@ -37,20 +37,20 @@ Updater::Updater(QWidget *parent) :
     dlObject->moveToThread(dlThread);
 
     // Signals - From UI
-    connect(ui->about, SIGNAL(clicked()), this, SLOT(AboutMe()));
-    connect(ui->launchGame, SIGNAL(clicked()), this, SLOT(LaunchGame()));
+    connect(ui->about, &QPushButton::clicked, this, &Updater::AboutMe);
+    connect(ui->launchGame, &QPushButton::clicked, this, &Updater::LaunchGame);
 
     // Signals - From downloader
-    connect(dlObject, SIGNAL(Stage1()), this, SLOT(Stage1()));
-    connect(dlObject, SIGNAL(Stage2()), this, SLOT(Stage2()));
-    connect(dlObject, SIGNAL(BytesDownloaded(int, float)), this, SLOT(BytesDownloaded(int, float)));
-    connect(dlObject, SIGNAL(FileDownloaded()), this, SLOT(FileDownloaded()));
-    connect(dlObject, SIGNAL(Log(QString, bool)), this, SLOT(Log(QString, bool)));
+    connect(dlObject, &Downloader::Stage1, this, &Updater::Stage1);
+    connect(dlObject, &Downloader::Stage2, this, &Updater::Stage2);
+    connect(dlObject, &Downloader::BytesDownloaded, this, &Updater::BytesDownloaded);
+    connect(dlObject, &Downloader::FileDownloaded, this, &Updater::FileDownloaded);
+    connect(dlObject, &Downloader::Log, this, &Updater::Log);
 
     // Signals - To downloader
-    connect(dlThread, SIGNAL(started()), dlObject, SLOT(Connect()));
-    connect(dlThread, SIGNAL(finished()), dlThread, SLOT(deleteLater()));
-    connect(this, SIGNAL(DownloadFile(QString, QString)), dlObject, SLOT(DownloadFile(QString, QString)));
+    connect(dlThread, &QThread::started, dlObject, &Downloader::Connect);
+    connect(dlThread, &QThread::finished, dlThread, &QThread::deleteLater);
+    connect(this, &Updater::DownloadFile, dlObject, &Downloader::DownloadFile);
 
     // Launch
     SetUserMessage("Downloading release notes");
@@ -121,7 +121,7 @@ void Updater::Stage2(void)
     SetUserMessage("Checking local files");
     filesToDownload.clear();
     QFutureWatcher<void>* watcher = new QFutureWatcher<void>();
-    connect(watcher, SIGNAL(finished()), this, SLOT(Stage3()));
+    connect(watcher, &QFutureWatcher<void>::finished, this, &Updater::Stage3);
     QFuture<void> parser = QtConcurrent::run(this, &Updater::ParseManifest, *dom, QString(""));
     watcher->setFuture(parser);
 }
@@ -266,7 +266,7 @@ void Updater::AboutMe(void)
 void Updater::AskForPassword()
 {
     Password* pwdDialog = new Password(this);
-    connect(pwdDialog, SIGNAL(PasswordEntered(QString)), dlObject, SLOT(Login(QString)));
+    connect(pwdDialog, &Password::PasswordEntered, dlObject, &Downloader::Login);
     pwdDialog->exec();
 }
 

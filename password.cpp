@@ -23,15 +23,8 @@ Password::Password(QWidget *parent) :
     buttons->button(QDialogButtonBox::Ok)->setText("Unlock update");
     buttons->button(QDialogButtonBox::Cancel)->setText("Abort and quit");
 
-    connect(buttons->button(QDialogButtonBox::Cancel),
-        SIGNAL(clicked()),
-        parent,
-        SLOT(close()));
-
-    connect(buttons->button(QDialogButtonBox::Ok),
-        SIGNAL(clicked()),
-        this,
-        SLOT(SlotPassword()));
+    connect(buttons->button(QDialogButtonBox::Cancel), &QPushButton::clicked, parent, &QDialog::close);
+    connect(buttons->button(QDialogButtonBox::Ok), &QPushButton::clicked, this, &Password::SlotPassword);
 
     formGridLayout->addWidget(editPassword, 0, 0);
     formGridLayout->addWidget(buttons, 1, 0, 1, 2);

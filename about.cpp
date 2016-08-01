@@ -19,7 +19,7 @@ About::About(QWidget *parent) :
 	ui->setupUi(this);
 	ui->aboutText->setHtml(TextToHtml(ABOUT_CONTENT));
 	setWindowTitle(ABOUT_TITLE);
-    connect(ui->exitButton, SIGNAL(clicked()), this, SLOT(close()));
+    connect(ui->exitButton, &QPushButton::clicked, this, &About::close);
 }
 
 About::~About()
