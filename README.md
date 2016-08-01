@@ -3,6 +3,8 @@ Unreal Updater
 
 A C++ updater for UE4 games, built with Qt5.
 
+![Screenshot](https://raw.githubusercontent.com/arbonagw/UnrealUpdater/master/Launcher.jpg)
+
 Overview
 --------
 
