@@ -30,7 +30,7 @@ The updater use a fresh installation of your game - you need to have a full depl
 
 1.  Rename the *Res_Sample/* into *Res/* and edit the images to match your project's look.
 2.  Edit *Res/project.h* to set your FTP data, game name, etc.
-3.  Use QTCreator to build the updater. You **should** use a static build of Qt so that the updater is a single file.
+3.  Use QTCreator to build the updater. You **should** use a static build of Qt so that the updater is a single file, [see this guide](http://stackoverflow.com/questions/14932315/how-to-compile-qt-5-under-windows-or-linux-32-or-64-bit-static-or-dynamic-on-v) to see how.
 4.  Create a ReleaseNotes.xml on your server to update the description on the updater main window. See below.
 5.  Create a GameManifest.xml on your server to tell the updater about the files you want. See below.
 6.  Your updater is ready, feel free to rename it and distribute it.
