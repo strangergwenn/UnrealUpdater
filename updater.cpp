@@ -1,5 +1,5 @@
 ﻿/**
- *  This work is distributed under the General Public License,
+ *  This work is distributed under the Lesser General Public License,
  *	see LICENSE for details
  *
  *  @author Gwennaël ARBONA
@@ -11,7 +11,7 @@
 
 
 /*----------------------------------------------
-	  Constructor & destructor
+        Constructor & destructor
 ----------------------------------------------*/
 
 Updater::Updater(QWidget *parent) :
@@ -31,30 +31,29 @@ Updater::Updater(QWidget *parent) :
     bAbortUpdate = false;
 	downloadSize = 0;
     downloadedBytes = 0;
-    dlThread = new QThread;
-    dlObject = new Downloader();
+    downloaderThread = new QThread;
+    downloader = new Downloader();
     aboutDialog = new About(this);
-    dlObject->moveToThread(dlThread);
+    downloader->moveToThread(downloaderThread);
 
     // Signals - From UI
     connect(ui->about, &QPushButton::clicked, this, &Updater::AboutMe);
     connect(ui->launchGame, &QPushButton::clicked, this, &Updater::LaunchGame);
 
     // Signals - From downloader
-    connect(dlObject, &Downloader::Stage1, this, &Updater::Stage1);
-    connect(dlObject, &Downloader::Stage2, this, &Updater::Stage2);
-    connect(dlObject, &Downloader::BytesDownloaded, this, &Updater::BytesDownloaded);
-    connect(dlObject, &Downloader::FileDownloaded, this, &Updater::FileDownloaded);
-    connect(dlObject, &Downloader::Log, this, &Updater::Log);
+    connect(downloader, &Downloader::PasswordRequired, this, &Updater::PasswordRequired);
+    connect(downloader, &Downloader::BytesDownloaded, this, &Updater::BytesDownloaded);
+    connect(downloader, &Downloader::FileDownloaded, this, &Updater::FileDownloaded);
+    connect(downloader, &Downloader::NetworkError, this, &Updater::Log);
 
     // Signals - To downloader
-    connect(dlThread, &QThread::started, dlObject, &Downloader::Connect);
-    connect(dlThread, &QThread::finished, dlThread, &QThread::deleteLater);
-    connect(this, &Updater::DownloadFile, dlObject, &Downloader::DownloadFile);
+    connect(downloaderThread, &QThread::started, downloader, &Downloader::Connect);
+    connect(downloaderThread, &QThread::finished, downloaderThread, &QThread::deleteLater);
+    connect(this, &Updater::DownloadFile, downloader, &Downloader::DownloadFile);
 
     // Launch
     SetUserMessage("Downloading release notes");
-    dlThread->start();
+    downloaderThread->start();
 }
 
 Updater::~Updater()
@@ -62,24 +61,24 @@ Updater::~Updater()
     SetSettingState(UU_LOCK_FILE, false);
 
 	delete ui;
-    delete dlThread;
+    delete downloaderThread;
     delete aboutDialog;
 }
 
 
 /*----------------------------------------------
-           Updating slots
+        Update steps
 ----------------------------------------------*/
 
-/*--- Stage 1 : parse the release notes, then download the manifest ---*/
+/*--- Stage 1 : We got the release notes, parse them and download the manifest ---*/
 void Updater::Stage1(void)
 {
     qDebug() << "Updater::Stage1";
 
-    // New version : use downloaded manifest
+    // Read new version : use downloaded manifest
 	QDomDocument* dom = new QDomDocument("notes");
 	QFile* file = new QFile(FTP_RELEASE_NOTES_FILE);
-	if(file->open(QFile::ReadOnly))
+    if (file->open(QFile::ReadOnly))
 	{
 		dom->setContent(file);
 		file->close();
@@ -87,9 +86,9 @@ void Updater::Stage1(void)
 	}
 	delete file;
 
-	// Old version
+    // Read old version
 	file = new QFile(FTP_OLD_RELEASE_NOTES_FILE);
-	if(file->open(QFile::ReadOnly))
+    if (file->open(QFile::ReadOnly))
 	{
 		dom->setContent(file);
 		file->close();
@@ -108,11 +107,11 @@ void Updater::Stage2(void)
     qDebug() << "Updater::Stage2";
 
     // Update preparation
-    dom = new QDomDocument("files");
+    currentDocument = new QDomDocument("files");
     QFile* file = new QFile(QString(FTP_MANIFEST_ROOT) + QString(FTP_MANIFEST_FILE));
-    if(file->open(QFile::ReadOnly))
+    if (file->open(QFile::ReadOnly))
     {
-        dom->setContent(file);
+        currentDocument->setContent(file);
         file->close();
     }
     delete file;
@@ -122,7 +121,7 @@ void Updater::Stage2(void)
     filesToDownload.clear();
     QFutureWatcher<void>* watcher = new QFutureWatcher<void>();
     connect(watcher, &QFutureWatcher<void>::finished, this, &Updater::Stage3);
-    QFuture<void> parser = QtConcurrent::run(this, &Updater::ParseManifest, *dom, QString(""));
+    QFuture<void> parser = QtConcurrent::run(this, &Updater::ParseManifest, *currentDocument, QString(""));
     watcher->setFuture(parser);
 }
 
@@ -132,7 +131,7 @@ void Updater::Stage3(void)
     qDebug() << "Updater::Stage3";
 
     // XML is ready
-    delete dom;
+    delete currentDocument;
     ui->downloadProgress->setRange(0, downloadSize);
     SetUserMessage("Downloading");
 
@@ -150,66 +149,34 @@ void Updater::Stage3(void)
         ui->downloadProgress->setRange(0, 100);
         ui->downloadProgress->setValue(100);
 
-        InstallGame();
+        if (!GetSettingState(UU_GAME_INSTALLED))
+        {
+            SetUserMessage("Installing game");
+
+            QProcess ueInstaller(this);
+            ueInstaller.startDetached(GAME_INSTALLER_EXECUTABLE);
+            ueInstaller.waitForFinished();
+
+            SetSettingState(UU_GAME_INSTALLED, true);
+        }
+
         SetUserMessage("Ready to play !");
 
         ui->launchGame->setEnabled(true);
     }
 }
 
-/*--- Received on FTP file downloaded ---*/
-void Updater::FileDownloaded(void)
-{
-    emit Log(currentFd.dir + currentFd.file, false);
-
-    // Download in progress
-    if (filesToDownload.size() > 0)
-    {
-        currentFd = filesToDownload.takeFirst();
-        emit DownloadFile(currentFd.dir, currentFd.file);
-    }
-
-    // Download complete : check for corruptions and run
-    else
-    {
-        filesToDownload.clear();
-        ui->downloadProgress->setRange(0, 100);
-        ui->downloadProgress->setValue(100);
-        emit Stage2();
-    }
-}
-
 
 /*----------------------------------------------
-                UI slots
+        Downloader interface
 ----------------------------------------------*/
 
-/*--- Append something to the list of downloaded files ---*/
-void Updater::Log(QString message, bool bIsHeavy)
+/*--- Relaunch the connecting process with a password prompt ---*/
+void Updater::PasswordRequired()
 {
-    if (bIsHeavy)
-    {
-        message = QString(HTML_HEAVY_S) + message + QString(HTML_HEAVY_E);
-    }
-    else
-    {
-#if !USE_FILE_LOG
-        return;
-#endif
-    }
-    ui->streamedMessages->append(message);
-}
-
-/*--- Print the status message ---*/
-void Updater::SetUserMessage(QString message)
-{
-	QString userInfo("");
-	if (currentVersion.length() > 0)
-	{
-        userInfo += QString(HTML_HEAVY_S) + currentVersion + QString(HTML_HEAVY_E) + " | ";
-	}
-    userInfo += QString(HTML_HEAVY_S) + message + QString(HTML_HEAVY_E);
-	ui->userInformation->setText(userInfo);
+    Password* pwdDialog = new Password(this);
+    connect(pwdDialog, &Password::PasswordEntered, downloader, &Downloader::Login);
+    pwdDialog->exec();
 }
 
 /*--- Received when the downloader updates the download status ---*/
@@ -247,6 +214,45 @@ void Updater::BytesDownloaded(int deltaBytes, float downloadSpeed)
     }
 }
 
+/*--- Received on FTP file downloaded ---*/
+void Updater::FileDownloaded(QString downloadedFile)
+{
+    if (downloadedFile == FTP_RELEASE_NOTES_FILE)
+    {
+        emit Stage1();
+        emit DownloadFile(FTP_MANIFEST_ROOT, FTP_MANIFEST_FILE);
+    }
+    else if (downloadedFile == FTP_MANIFEST_FILE)
+    {
+        emit Stage2();
+    }
+    else
+    {
+        emit Log(currentFd.dir + currentFd.file, false);
+
+        // Download in progress
+        if (filesToDownload.size() > 0)
+        {
+            currentFd = filesToDownload.takeFirst();
+            emit DownloadFile(currentFd.dir, currentFd.file);
+        }
+
+        // Download complete : check for corruptions and run
+        else
+        {
+            filesToDownload.clear();
+            ui->downloadProgress->setRange(0, 100);
+            ui->downloadProgress->setValue(100);
+            emit Stage2();
+        }
+    }
+}
+
+
+/*----------------------------------------------
+        User interface
+----------------------------------------------*/
+
 /*--- Launch game, exit updater ---*/
 void Updater::LaunchGame(void)
 {
@@ -262,17 +268,34 @@ void Updater::AboutMe(void)
 	aboutDialog->show();
 }
 
-/*--- Relaunch the connecting process with a password prompt ---*/
-void Updater::AskForPassword()
+/*--- Append something to the list of downloaded files ---*/
+void Updater::Log(QString message, bool bIsHeavy)
 {
-    Password* pwdDialog = new Password(this);
-    connect(pwdDialog, &Password::PasswordEntered, dlObject, &Downloader::Login);
-    pwdDialog->exec();
+    qDebug() << message;
+
+    if (bIsHeavy)
+    {
+        message = QString(HTML_HEAVY_S) + message + QString(HTML_HEAVY_E);
+    }
+
+    ui->streamedMessages->append(message);
+}
+
+/*--- Print the status message ---*/
+void Updater::SetUserMessage(QString message)
+{
+    QString userInfo("");
+    if (currentVersion.length() > 0)
+    {
+        userInfo += QString(HTML_HEAVY_S) + currentVersion + QString(HTML_HEAVY_E) + " | ";
+    }
+    userInfo += QString(HTML_HEAVY_S) + message + QString(HTML_HEAVY_E);
+    ui->userInformation->setText(userInfo);
 }
 
 
 /*----------------------------------------------
-           Update methods
+           XML parsing
 ----------------------------------------------*/
 
 /*--- Analyze release notes, store data and display info ---*/
@@ -320,7 +343,7 @@ void Updater::ParseReleaseNotes(QDomNode node, bool bIsCurrent)
 			// Ignore list
 			else if (n.nodeName() == "NotUpdatedFile" && !bIsCurrent)
 			{
-				notUpdatedFiles.append(n.toElement().text());
+                filesToIgnore.append(n.toElement().text());
 			}
 
 			// Release notes text
@@ -379,7 +402,7 @@ void Updater::ParseManifest(QDomNode node, QString dirName)
                     {
                         bShouldDownload = true;
                     }
-                    else if (e.attribute("md5", "").length() > 0 && !notUpdatedFiles.contains(fileName))
+                    else if (e.attribute("md5", "").length() > 0 && !filesToIgnore.contains(fileName))
                     {
                         fileHash = HashFile(tempFile);
                         if (fileHash != e.attribute("md5", "") && fileHash.length() > 0)
@@ -406,7 +429,7 @@ void Updater::ParseManifest(QDomNode node, QString dirName)
 
 
 /*----------------------------------------------
-           Utilitary methods
+           Utils
 ----------------------------------------------*/
 
 /*--- Get a MD5 hash from a file on disk ---*/
@@ -425,34 +448,20 @@ QString Updater::HashFile(QFile* file)
 /*--- Generic, basic setting API : setter ---*/
 void Updater::SetSettingState(QString settingName, bool bState)
 {
-	if (bState)
-	{
-		QFile settingFile(settingName);
-		settingFile.open(QFile::WriteOnly);
-		settingFile.close();
-	}
-	else
-	{
-		QFile::remove(settingName);
-	}
+    if (bState)
+    {
+        QFile settingFile(settingName);
+        settingFile.open(QFile::WriteOnly);
+        settingFile.close();
+    }
+    else
+    {
+        QFile::remove(settingName);
+    }
 }
 
 /*--- Generic, basic setting API : getter---*/
 bool Updater::GetSettingState(QString settingName)
 {
-	return QFile::exists(settingName);
-}
-
-/*--- Check if the UE4 redistributables have been installed ---*/
-void Updater::InstallGame(void)
-{
-    QProcess ueInstaller(this);
-
-    if (!GetSettingState(UU_GAME_INSTALLED))
-    {
-        SetUserMessage("Installing game");
-        ueInstaller.startDetached(GAME_INSTALLER_EXECUTABLE);
-        ueInstaller.waitForFinished();
-        SetSettingState(UU_GAME_INSTALLED, true);
-    }
+    return QFile::exists(settingName);
 }

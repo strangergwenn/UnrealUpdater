@@ -1,5 +1,5 @@
 ﻿/**
- *  This work is distributed under the General Public License,
+ *  This work is distributed under the Lesser General Public License,
  *	see LICENSE for details
  *
  *  @author Gwennaël ARBONA
@@ -47,30 +47,40 @@ class Updater : public QMainWindow
 		~Updater();
 
 	public slots:
+
+        // Update steps
         void Stage1(void);
         void Stage2(void);
         void Stage3(void);
-        void BytesDownloaded(int deltaBytes, float downloadSpeed);
-        void FileDownloaded(void);
-        void AskForPassword(void);
 
+        // Downloader interface
+        void PasswordRequired(void);
+        void BytesDownloaded(int deltaBytes, float downloadSpeed);
+        void FileDownloaded(QString downloadedFile);
+
+        // User interface
+        void LaunchGame(void);
+        void AboutMe(void);
         void Log(QString message, bool bIsHeavy);
         void SetUserMessage(QString message);
 
-        void LaunchGame(void);
-        void AboutMe(void);
-
     signals:
+
+        // Start downloading a file
         void DownloadFile(QString dir, QString file);
 
-	private:
+    private:
+
+        // XML parsing
         void ParseReleaseNotes(QDomNode node, bool bIsCurrent);
         void ParseManifest(QDomNode node, QString dirName);
 
+        // Utils
         QString HashFile(QFile* file);
-        void InstallGame(void);
         void SetSettingState(QString settingName, bool bState);
         bool GetSettingState(QString settingName);
+
+    private:
 
         bool        	bAbortUpdate;
 
@@ -82,13 +92,13 @@ class Updater : public QMainWindow
 		QString         currentVersion;
 		QString         nextVersion;
 
-        QDomDocument*   dom;
+        QDomDocument*   currentDocument;
         File_t          currentFd;
-		QList<QString>  notUpdatedFiles;
+        QList<QString>  filesToIgnore;
 		QList<File_t>   filesToDownload;
 
-        Downloader*     dlObject;
-        QThread*		dlThread;
+        Downloader*     downloader;
+        QThread*		downloaderThread;
 		Ui::Updater     *ui;
         About*          aboutDialog;
 };

@@ -1,5 +1,5 @@
 /**
- *  This work is distributed under the General Public License,
+ *  This work is distributed under the Lesser General Public License,
  *	see LICENSE for details
  *
  *  @author Gwennaël ARBONA
@@ -27,7 +27,7 @@ Downloader::~Downloader()
 
 
 /*----------------------------------------------
-		   Slots
+        Connection handling
 ----------------------------------------------*/
 
 /*--- Launch thread ---*/
@@ -42,11 +42,11 @@ void Downloader::Connect()
     QFile::remove(FTP_MANIFEST_FILE);
 
     // URL setup
-    baseUrl = new QUrl();
-    baseUrl->setScheme("ftp");
-    baseUrl->setPort(21);
-    baseUrl->setHost(FTP_SERVER);
-    baseUrl->setUserName(FTP_USER);
+    ftpClient = new QUrl();
+    ftpClient->setScheme("ftp");
+    ftpClient->setPort(21);
+    ftpClient->setHost(FTP_SERVER);
+    ftpClient->setUserName(FTP_USER);
 
     // FTP setup
     currentSpeed = 0.0;
@@ -72,25 +72,20 @@ void Downloader::Connect()
     downloadUpdateTimer->start(FTP_DOWNLOAD_UPDATE_TIME);
 
     // Launch
-#if USE_PASSWORD
-    emit AskForPassword();
-#else
     Login("");
-#endif
 }
 
-/*--- Timeout has expired, restart file ---*/
+/*--- Timeout has expired, restart the current file ---*/
 void Downloader::Reconnect()
 {
     qDebug() << "Downloader::Reconnect";
 
-    // Suppress the FTP handler
-    emit Log("Timeout downloading " + currentFtpFile, false);
+    // Destroy the FTP handler
     disconnect(timeoutTimer, &QTimer::timeout, this, &Downloader::Reconnect);
     disconnect(ftp, &QNetworkAccessManager::finished, this, &Downloader::FileFinished);
     ftp->deleteLater();
 
-    // Restart it
+    // Restart
     ftp = new QNetworkAccessManager();
     connect(timeoutTimer, &QTimer::timeout, this, &Downloader::Reconnect);
     connect(ftp, &QNetworkAccessManager::finished, this, &Downloader::FileFinished);
@@ -102,18 +97,23 @@ void Downloader::Login(QString pwd)
 {
     qDebug() << "Downloader::Login";
 
-    passWd = pwd;
-    baseUrl->setPassword(passWd);
+    password = pwd;
+    ftpClient->setPassword(password);
     DownloadFile("", FTP_RELEASE_NOTES_FILE);
 }
+
+
+/*----------------------------------------------
+        File handling
+----------------------------------------------*/
 
 /*--- Prepare download, then issue the FTP commands ---*/
 void Downloader::DownloadFile(QString dir, QString file)
 {
-    qDebug() << "Downloader::DownloadFile " + dir + file;
+    qDebug() << "Downloader::DownloadFile";
 
     // Data
-    QUrl fileUrl(*baseUrl);
+    QUrl fileUrl(*ftpClient);
     QNetworkRequest r;
     QDir tempDir(".");
 
@@ -160,29 +160,10 @@ void Downloader::FilePart(void)
     chronoSize += count;
 }
 
-/*--- Update current speed ---*/
-void Downloader::UpdateSpeedInfo(void)
-{
-    currentSpeed = ((float)chronoSize / 1024.0) / ((float)chrono->restart() / 1000.0);
-    chronoSize = 0;
-
-    speedUpdateTimer->start(FTP_SPEED_UPDATE_TIME);
-}
-
-/*--- Update data about the current download ---*/
-void Downloader::UpdateDownloadInfo(void)
-{
-    int sizeDelta = downloadedSize - lastDownloadedSize;
-    emit BytesDownloaded(sizeDelta, currentSpeed);
-    lastDownloadedSize = downloadedSize;
-
-    downloadUpdateTimer->start(FTP_DOWNLOAD_UPDATE_TIME);
-}
-
 /*--- Received when a command has failed ---*/
 void Downloader::FileError(QNetworkReply::NetworkError code)
 {
-    qDebug() << "Downloader::FileError on " + currentFtpDir + currentFtpFile;
+    qDebug() << "Downloader::FileError";
 
     switch (code)
     {
@@ -193,28 +174,17 @@ void Downloader::FileError(QNetworkReply::NetworkError code)
         case QNetworkReply::RemoteHostClosedError:
         case QNetworkReply::HostNotFoundError:
         case QNetworkReply::TimeoutError:
-            qDebug() << "Downloader::FileError : network error " + QString::number(code);
-            Log("Networking error (" + QString::number(code) + ")", true);
+            emit NetworkError("Networking error (" + QString::number(code) + ")", true);
             break;
 
         case QNetworkReply::AuthenticationRequiredError:
-            qDebug() << "Downloader::FileError : authentication error " + QString::number(code);
-#if USE_PASSWORD
-            Log("Invalid password", true);
-#else
-            Log("Password is required", true);
-#endif
-            Log("This IP address will be temporary banned after too many invalid passwords", true);
+            emit NetworkError("Password required", true);
+            emit PasswordRequired();
+
+            bDownloading = false;
             timeoutTimer->stop();
             speedUpdateTimer->stop();
-#if USE_PASSWORD
-            disconnect(timeout, &QTimer::timeout, this, &Downloader::Reconnect);
-            disconnect(ftp, &QNetworkAccessManager::finished, this, &Downloader::FileFinished);
-            ftp->deleteLater();
-            timeout->deleteLater();
-            speedUpdateTimer->deleteLater();
-            emit Connect();
-#endif
+
             break;
 
         case QNetworkReply::ProxyAuthenticationRequiredError:
@@ -223,13 +193,11 @@ void Downloader::FileError(QNetworkReply::NetworkError code)
         case QNetworkReply::ProxyNotFoundError:
         case QNetworkReply::ProxyTimeoutError:
         case QNetworkReply::UnknownProxyError:
-            qDebug() << "Downloader::FileError : proxy error " + QString::number(code);
-            Log("Proxy error (" + QString::number(code) + ")", true);
+            emit NetworkError("Proxy error (" + QString::number(code) + ")", true);
             break;
 
         default:
-            qDebug() << "Downloader::FileError : server error " + QString::number(code);
-            Log("Server error (" + QString::number(code) + ")", true);
+            emit NetworkError("Server error (" + QString::number(code) + ")", true);
             break;
     }
 }
@@ -252,18 +220,30 @@ void Downloader::FileFinished(QNetworkReply* mreply)
 		currentFile->close();
         delete currentFile;
 
-		if (currentFtpFile == FTP_RELEASE_NOTES_FILE)
-		{
-            emit Stage1();
-            DownloadFile(FTP_MANIFEST_ROOT, FTP_MANIFEST_FILE);
-		}
-		else if (currentFtpFile == FTP_MANIFEST_FILE)
-		{
-            emit Stage2();
-		}
-        else
-		{
-            emit FileDownloaded();
-        }
+        emit FileDownloaded(currentFtpFile);
     }
+}
+
+
+/*----------------------------------------------
+        Downloading info
+----------------------------------------------*/
+
+/*--- Update current speed ---*/
+void Downloader::UpdateSpeedInfo(void)
+{
+    currentSpeed = ((float)chronoSize / 1024.0) / ((float)chrono->restart() / 1000.0);
+    chronoSize = 0;
+
+    speedUpdateTimer->start(FTP_SPEED_UPDATE_TIME);
+}
+
+/*--- Update data about the current download ---*/
+void Downloader::UpdateDownloadInfo(void)
+{
+    int sizeDelta = downloadedSize - lastDownloadedSize;
+    emit BytesDownloaded(sizeDelta, currentSpeed);
+    lastDownloadedSize = downloadedSize;
+
+    downloadUpdateTimer->start(FTP_DOWNLOAD_UPDATE_TIME);
 }

@@ -1,5 +1,5 @@
 /**
- *  This work is distributed under the General Public License,
+ *  This work is distributed under the Lesser General Public License,
  *	see LICENSE for details
  *
  *  @author Gwennaël ARBONA
@@ -20,25 +20,26 @@ Password::Password(QWidget *parent) :
     buttons = new QDialogButtonBox(this);
     buttons->addButton(QDialogButtonBox::Ok);
     buttons->addButton(QDialogButtonBox::Cancel);
-    buttons->button(QDialogButtonBox::Ok)->setText("Unlock update");
-    buttons->button(QDialogButtonBox::Cancel)->setText("Abort and quit");
+    buttons->button(QDialogButtonBox::Ok)->setText("Login");
+    buttons->button(QDialogButtonBox::Cancel)->setText("Abort");
 
     connect(buttons->button(QDialogButtonBox::Cancel), &QPushButton::clicked, parent, &QDialog::close);
-    connect(buttons->button(QDialogButtonBox::Ok), &QPushButton::clicked, this, &Password::SlotPassword);
+    connect(buttons->button(QDialogButtonBox::Ok), &QPushButton::clicked, this, &Password::SlotPasswordEntered);
 
     formGridLayout->addWidget(editPassword, 0, 0);
     formGridLayout->addWidget(buttons, 1, 0, 1, 2);
     setLayout(formGridLayout);
-    setWindowTitle("Locked update");
+    setWindowTitle("Password");
     setModal(true);
 }
+
 
 /*----------------------------------------------
            Slots
 ----------------------------------------------*/
 
 /*--- Signal the password entry ---*/
-void Password::SlotPassword()
+void Password::SlotPasswordEntered()
 {
     emit PasswordEntered(editPassword->text());
     close();

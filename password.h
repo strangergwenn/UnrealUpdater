@@ -1,5 +1,5 @@
 /**
- *  This work is distributed under the General Public License,
+ *  This work is distributed under the Lesser General Public License,
  *	see LICENSE for details
  *
  *  @author Gwennaël ARBONA
@@ -37,7 +37,7 @@ class Password : public QDialog
         void PasswordEntered(QString password);
 
     public slots:
-        void SlotPassword();
+        void SlotPasswordEntered();
 
     private:
         QLineEdit* editPassword;

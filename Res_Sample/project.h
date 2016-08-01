@@ -1,5 +1,5 @@
 /**
- *  This work is distributed under the General Public License,
+ *  This work is distributed under the Lesser General Public License,
  *	see LICENSE for details
  *
  *  @author Gwennaël ARBONA
@@ -7,7 +7,7 @@
 
 
 /*----------------------------------------------
-         General settings
+         Content settings
 ---------------------------------------------*/
 
 // Title for the main window
@@ -16,12 +16,18 @@
 // Title for the "About" window
 #define ABOUT_TITLE                 "About"
 
-// Show files in the main window when they're downloaded
-#define USE_FILE_LOG                1
-
-// Ask the user for the FTP password before connecting
-#define USE_PASSWORD                0
-
+/*--- Content of about dialog ---
+ *text* will be a title
+ !text! will be italic
+ _text_ will be bold
+*/
+#define ABOUT_CONTENT \
+"*About Unreal Updater*\n \
+\n \
+This game updater is open-source software under the LGPL license.\n \
+ You can find the sources on GitHub : https://github.com/arbonagw/UnrealUpdater\n \
+\n \
+_Gwenna&euml;l ARBONA_"
 
 /*----------------------------------------------
          Path settings
@@ -65,19 +71,6 @@
 /*----------------------------------------------
         Customization
 ---------------------------------------------*/
-
-/*--- Content of about dialog ---
- *text* will be a title
- !text! will be italic
- _text_ will be bold
-*/
-#define ABOUT_CONTENT \
-"*About Unreal Updater*\n \
-\n \
-This game updater is open-source software under the LGPL license.\n \
- You can find the sources on GitHub : https://github.com/arbonagw/UnrealUpdater\n \
-\n \
-_Gwenna&euml;l ARBONA_"
 
 /*--- Colors and fonts for all the interface ---*/
 #define HTML_TITLE_S                "<b><font size=\"3\" color=\"lightskyblue\">"

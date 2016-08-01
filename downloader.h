@@ -1,5 +1,5 @@
 /**
- *  This work is distributed under the General Public License,
+ *  This work is distributed under the Lesser General Public License,
  *	see LICENSE for details
  *
  *  @author Gwennaël ARBONA
@@ -35,32 +35,39 @@ public:
     ~Downloader();
 
 public slots:
+
+    // Connection handling
     void Connect(void);
     void Reconnect(void);
     void Login(QString pwd);
+
+    // File handling
     void DownloadFile(QString dir, QString file);
     void FilePart(void);
-    void UpdateDownloadInfo(void);
-    void UpdateSpeedInfo(void);
     void FileError(QNetworkReply::NetworkError code);
     void FileFinished(QNetworkReply* mreply);
 
+    // Downloading info
+    void UpdateDownloadInfo(void);
+    void UpdateSpeedInfo(void);
+
 signals:
-    void AskForPassword(void);
-    void Stage1(void);
-    void Stage2(void);
+
+    // Downloader events
+    void PasswordRequired(void);
     void BytesDownloaded(int, float);
-    void FileDownloaded(void);
-    void Log(QString message, bool bIsHeavy);
+    void FileDownloaded(QString downloadedFile);
+    void NetworkError(QString message, bool bIsHeavy);
 
 private:
+
     float   currentSpeed;
     bool    bDownloading;
     int     downloadedSize;
     int     lastDownloadedSize;
     int     chronoSize;
-    QString passWd;
-    QUrl*   baseUrl;
+    QString password;
+    QUrl*   ftpClient;
 	QFile*  currentFile;
     QTime*  chrono;
     QTimer* timeoutTimer;
